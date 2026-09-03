@@ -1,0 +1,13 @@
+{
+  "meta": {
+    "platform": "parkos",
+    "fixture": "reservations_malformed_json"
+  },
+  "reservations": [
+    {
+      "id": "PKS-10006",
+      "product_code": "OPEN_AIR"
+      "missing_comma_before_this": true
+    }
+  ]
+}

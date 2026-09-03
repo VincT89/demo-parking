@@ -1,0 +1,20 @@
+{
+  "meta": {
+    "platform": "parkos",
+    "fixture": "reservations_invalid_dates"
+  },
+  "reservations": [
+    {
+      "id": "PKS-10005",
+      "product_code": "OPEN_AIR",
+      "customer": {
+        "name": "Giulia Blu"
+      },
+      "period": {
+        "starts_at": "2026-05-12T18:00:00+02:00",
+        "ends_at": "2026-05-10T09:00:00+02:00"
+      },
+      "spots": 1
+    }
+  ]
+}

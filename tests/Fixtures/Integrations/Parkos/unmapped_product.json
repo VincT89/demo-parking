@@ -1,0 +1,25 @@
+{
+  "meta": {
+    "platform": "parkos",
+    "fixture": "unmapped_product",
+    "generated_at": "2026-04-23T10:00:00+02:00"
+  },
+  "data": {
+    "1": {
+      "code": "UNMAPPED",
+      "name": "Mario Rossi",
+      "phone": "+393331112233",
+      "car_license_plate": "AB123CD",
+      "arrival_date": "2026-06-15",
+      "arrival_time": "10:00",
+      "departure_date": "2026-06-20",
+      "departure_time": "18:00",
+      "parking_type": "valet",
+      "location_type": "indoor",
+      "merchant_id": 99999,
+      "total_price": 99,
+      "currency": "EUR",
+      "cancelled_at": null
+    }
+  }
+}

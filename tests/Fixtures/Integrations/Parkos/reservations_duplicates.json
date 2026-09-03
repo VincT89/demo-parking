@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "platform": "parkos",
+    "fixture": "reservations_duplicates"
+  },
+  "reservations": [
+    {
+      "id": "PKS-10004",
+      "product_code": "OPEN_AIR",
+      "customer": {
+        "name": "Marco Neri"
+      },
+      "period": {
+        "starts_at": "2026-05-08T08:00:00+02:00",
+        "ends_at": "2026-05-09T20:00:00+02:00"
+      },
+      "spots": 1
+    },
+    {
+      "id": "PKS-10004",
+      "product_code": "OPEN_AIR",
+      "customer": {
+        "name": "Marco Neri Updated"
+      },
+      "period": {
+        "starts_at": "2026-05-08T08:00:00+02:00",
+        "ends_at": "2026-05-09T20:00:00+02:00"
+      },
+      "spots": 1
+    }
+  ]
+}

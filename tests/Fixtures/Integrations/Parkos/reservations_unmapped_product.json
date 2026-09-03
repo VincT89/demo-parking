@@ -1,0 +1,23 @@
+{
+  "meta": {
+    "platform": "parkos",
+    "fixture": "reservations_unmapped_product"
+  },
+  "data": {
+    "1": {
+      "code": "PKS-10003",
+      "name": "Anna Verdi",
+      "phone": "+393331112233",
+      "car_license_plate": "XY999ZZ",
+      "arrival_date": "2026-05-10",
+      "arrival_time": "09:00",
+      "departure_date": "2026-05-12",
+      "departure_time": "21:00",
+      "parking_type": "UNKNOWN_PRODUCT",
+      "location_type": "unknown",
+      "merchant_id": 15325,
+      "total_price": 40,
+      "currency": "EUR"
+    }
+  }
+}

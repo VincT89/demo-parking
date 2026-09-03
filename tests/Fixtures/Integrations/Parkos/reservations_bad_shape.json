@@ -1,0 +1,12 @@
+{
+  "meta": {
+    "platform": "parkos",
+    "fixture": "reservations_bad_shape"
+  },
+  "unexpected_root_key": "some value",
+  "data": [
+    {
+      "wrong": 1
+    }
+  ]
+}

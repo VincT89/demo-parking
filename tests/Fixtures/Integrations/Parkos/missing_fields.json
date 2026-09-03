@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "platform": "parkos",
+    "fixture": "missing_fields",
+    "generated_at": "2026-04-23T10:00:00+02:00"
+  },
+  "data": {
+    "1": {
+      "name": "Mario Rossi",
+      "arrival_date": "2026-06-15",
+      "arrival_time": "10:00",
+      "departure_date": "2026-06-20",
+      "departure_time": "18:00",
+      "total_price": 99,
+      "currency": "EUR"
+    }
+  }
+}

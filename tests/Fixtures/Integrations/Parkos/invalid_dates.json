@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "platform": "parkos",
+    "fixture": "invalid_dates",
+    "generated_at": "2026-04-23T10:00:00+02:00"
+  },
+  "data": {
+    "1": {
+      "code": "INVALIDDATES",
+      "name": "Mario Rossi",
+      "arrival_date": "2026-06-25",
+      "arrival_time": "10:00",
+      "departure_date": "2026-06-20",
+      "departure_time": "18:00",
+      "parking_type": "shuttle",
+      "location_type": "outdoor",
+      "merchant_id": 15325,
+      "total_price": 99,
+      "currency": "EUR"
+    }
+  }
+}

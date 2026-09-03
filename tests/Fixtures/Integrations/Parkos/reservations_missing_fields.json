@@ -1,0 +1,19 @@
+{
+  "meta": {
+    "platform": "parkos",
+    "fixture": "reservations_missing_fields"
+  },
+  "reservations": [
+    {
+      "id": "PKS-10002",
+      "product_code": "OPEN_AIR",
+      "customer": {
+        "name": "Luigi Bianchi"
+      },
+      "period": {
+        "starts_at": "2026-05-03T10:00:00+02:00"
+      },
+      "spots": 1
+    }
+  ]
+}
