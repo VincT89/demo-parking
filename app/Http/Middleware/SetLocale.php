@@ -12,10 +12,16 @@ class SetLocale
     public function handle(Request $request, Closure $next): Response
     {
         $supported = array_keys(config('app.supported_locales', []));
-        $locale = (string) $request->session()->get('locale', config('app.locale', 'it'));
+        $defaultLocale = (string) config('app.locale', 'it');
+
+        if (! in_array($defaultLocale, $supported, true)) {
+            $defaultLocale = $supported[0] ?? 'it';
+        }
+
+        $locale = (string) $request->session()->get('locale', $defaultLocale);
 
         if (! in_array($locale, $supported, true)) {
-            $locale = (string) config('app.locale', 'it');
+            $locale = $defaultLocale;
         }
 
         app()->setLocale($locale);

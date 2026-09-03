@@ -76,3 +76,12 @@ test('language selector accepts only the configured demo locales', function () {
     $this->post(route('locale.update'), ['locale' => 'uk'])
         ->assertSessionHasErrors('locale');
 });
+
+test('unsupported configured locale falls back to the first supported locale', function () {
+    config()->set('app.locale', 'en');
+
+    $this->get('/login')
+        ->assertOk()
+        ->assertHeader('Content-Language', 'it')
+        ->assertSee('fill="#009246"', false);
+});
