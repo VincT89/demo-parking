@@ -67,7 +67,7 @@
                     class="pm-sidebar-link"
                     target="_blank"
                     rel="noopener noreferrer"
-                    title="{{ __('Pagina prenotazioni') }}">
+                    title="{{ __('Pagina prenotazioni') }} (FO)">
                     <span class="pm-sidebar-link-icon">
                         <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path d="M8.5 1.5h5v5" />
@@ -75,7 +75,7 @@
                             <path d="M6 3H2.5a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1H11a1 1 0 0 0 1-1V9" />
                         </svg>
                     </span>
-                    <span class="pm-sidebar-link-label">{{ __('Pagina prenotazioni') }}</span>
+                    <span class="pm-sidebar-link-label">{{ __('Pagina prenotazioni') }} (FO)</span>
                 </a>
 
                 <a href="{{ route('calendar') }}"
