@@ -63,6 +63,21 @@
                     <span class="pm-sidebar-link-label">{{ __('Prenotazioni') }}</span>
                 </a>
 
+                <a href="{{ route('public.booking.form') }}"
+                    class="pm-sidebar-link"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="{{ __('Pagina prenotazioni') }}">
+                    <span class="pm-sidebar-link-icon">
+                        <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M8.5 1.5h5v5" />
+                            <path d="M13.5 1.5 7 8" />
+                            <path d="M6 3H2.5a1 1 0 0 0-1 1v8.5a1 1 0 0 0 1 1H11a1 1 0 0 0 1-1V9" />
+                        </svg>
+                    </span>
+                    <span class="pm-sidebar-link-label">{{ __('Pagina prenotazioni') }}</span>
+                </a>
+
                 <a href="{{ route('calendar') }}"
                     class="pm-sidebar-link {{ request()->routeIs('calendar*') ? 'active' : '' }}" title="{{ __('Calendario') }}">
                     <span class="pm-sidebar-link-icon">
