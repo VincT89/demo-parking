@@ -45,8 +45,8 @@ class ShuttleController extends Controller
             ->whereDate('scheduled_at', $date->toDateString())
             ->with(['vehicle', 'assignments.reservation'])
             ->orderBy('scheduled_at')
-            ->get()
-            ->groupBy(fn (ShuttleTrip $trip) => $trip->direction->value);
+            ->orderBy('id')
+            ->get();
 
         $reservations = Reservation::query()
             ->where('parking_id', $parking->id)

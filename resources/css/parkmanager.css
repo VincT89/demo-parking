@@ -1584,27 +1584,36 @@ body.pm-public .pm-avail-no {
 .pm-shuttle-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; }
 .pm-shuttle-generate { display: grid; justify-items: end; gap: 7px; }
 .pm-shuttle-generate p { max-width: 360px; color: var(--pm-text-muted); font-size: 11px; text-align: right; }
-.pm-shuttle-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; align-items: start; }
-.pm-shuttle-direction { min-width: 0; }
-.pm-shuttle-direction-header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
-.pm-shuttle-direction-header h2 { font-size: 15px; font-weight: 600; }
-.pm-shuttle-direction-header span { color: var(--pm-text-muted); font-size: 11px; }
-.pm-shuttle-trip-list { display: grid; gap: 12px; }
-.pm-shuttle-trip { padding: 18px; }
-.pm-shuttle-trip.is-cancelled { opacity: .65; }
-.pm-shuttle-trip-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; }
-.pm-shuttle-trip-head > div { display: grid; gap: 3px; min-width: 0; }
-.pm-shuttle-trip-head time { font: 650 24px/1 var(--pm-mono); color: var(--pm-text); }
-.pm-shuttle-trip-head > div > span { color: var(--pm-text-muted); font-size: 12px; overflow-wrap: anywhere; }
-.pm-shuttle-capacity { display: flex; justify-content: space-between; gap: 10px; margin-top: 15px; padding: 10px 0; border-block: 1px solid var(--pm-border); font-size: 12px; }
-.pm-shuttle-capacity span { color: var(--pm-text-muted); }
-.pm-shuttle-capacity strong { font-family: var(--pm-mono); }
+.pm-shuttle-table-header { gap: 16px; margin: 0; padding: 20px 24px; border-bottom: 1px solid var(--pm-border); }
+.pm-shuttle-table-header > span { flex: 0 0 auto; color: var(--pm-text-muted); font-size: 11px; }
+.pm-shuttle-table { min-width: 980px; }
+.pm-shuttle-table th:first-child,
+.pm-shuttle-table td:first-child { width: 74px; }
+.pm-shuttle-table th:last-child,
+.pm-shuttle-table td:last-child { width: 76px; text-align: right; }
+.pm-shuttle-summary-row.is-cancelled { opacity: .62; }
+.pm-shuttle-summary-row.is-expanded td { background: var(--pm-bg); }
+.pm-shuttle-table-time { color: var(--pm-text); font: 650 18px/1 var(--pm-mono); }
+.pm-shuttle-direction-label { display: block; max-width: 190px; line-height: 1.35; }
+.pm-shuttle-table-groups { display: grid; min-width: 180px; gap: 6px; }
+.pm-shuttle-table-groups > span { display: grid; min-width: 0; }
+.pm-shuttle-table-groups strong { font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.pm-shuttle-table-groups small { margin-top: 2px; color: var(--pm-text-muted); font-size: 11px; overflow-wrap: anywhere; }
+.pm-shuttle-table-groups .pm-shuttle-empty { color: var(--pm-text-muted); font-size: 12px; }
+.pm-shuttle-detail-row[x-cloak] { display: none !important; }
+.pm-shuttle-detail-row > td { padding: 0 0 16px !important; background: transparent !important; }
+.pm-shuttle-trip-panel { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 24px; padding: 20px; border: 1px solid var(--pm-border); border-radius: var(--pm-radius-sm); background: var(--pm-bg); }
+.pm-shuttle-panel-section { min-width: 0; }
+.pm-shuttle-panel-section h3 { color: var(--pm-text); font-size: 13px; font-weight: 600; }
+.pm-shuttle-panel-section > div:first-child > p { margin-top: 4px; color: var(--pm-text-muted); font-size: 11px; }
 .pm-shuttle-passengers { display: grid; gap: 0; }
 .pm-shuttle-passengers > div { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--pm-border); }
 .pm-shuttle-passengers > div > div { display: grid; min-width: 0; }
 .pm-shuttle-passengers strong { font-size: 12px; overflow-wrap: anywhere; }
 .pm-shuttle-passengers span { color: var(--pm-text-muted); font-size: 11px; overflow-wrap: anywhere; }
 .pm-shuttle-passengers .pm-shuttle-empty { display: block; color: var(--pm-text-muted); font-size: 12px; }
+.pm-shuttle-assignment-form { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--pm-border); }
+.pm-shuttle-assignment-form > h3 { margin-bottom: 2px; }
 .pm-text-button { padding: 3px 0; border: 0; background: transparent; color: var(--pm-accent); font: inherit; font-size: 11px; cursor: pointer; }
 .pm-text-button.is-danger { color: var(--pm-red); }
 .pm-shuttle-cancel { margin-top: 14px; text-align: right; }
@@ -1616,8 +1625,8 @@ body.pm-public .pm-avail-no {
 @media (max-width: 1024px) {
     .pm-garage-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .pm-garage-lists { grid-template-columns: 1fr; }
-    .pm-garage-detail-grid,
-    .pm-shuttle-columns { grid-template-columns: 1fr; }
+    .pm-garage-detail-grid { grid-template-columns: 1fr; }
+    .pm-shuttle-trip-panel { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
@@ -1652,7 +1661,18 @@ body.pm-public .pm-avail-no {
     .pm-responsive-empty { display: block; padding: 22px 14px; color: var(--pm-text-muted); text-align: center; }
     .pm-responsive-empty td { display: block; padding: 0 !important; border: 0 !important; }
     .pm-inline-reversal-form { min-width: 0; }
-    .pm-shuttle-trip { padding: 16px; }
+    .pm-shuttle-table-header { align-items: flex-start; padding: 18px 16px; }
+    .pm-shuttle-table { min-width: 0; }
+    .pm-shuttle-table th:first-child,
+    .pm-shuttle-table td:first-child,
+    .pm-shuttle-table th:last-child,
+    .pm-shuttle-table td:last-child { width: auto; text-align: left; }
+    .pm-shuttle-summary-row.is-expanded { border-bottom-color: transparent !important; border-radius: var(--pm-radius-sm) var(--pm-radius-sm) 0 0 !important; }
+    .pm-responsive-table tr.pm-shuttle-detail-row { display: block; margin-top: -12px; padding: 0 14px 14px; border-top: 0; border-radius: 0 0 var(--pm-radius-sm) var(--pm-radius-sm); }
+    .pm-responsive-table tr.pm-shuttle-detail-row > td { display: block; grid-column: 1 / -1; padding: 0 !important; }
+    .pm-responsive-table tr.pm-shuttle-detail-row > td::before { content: none; }
+    .pm-shuttle-trip-panel { grid-template-columns: 1fr; gap: 20px; padding: 16px; }
+    .pm-shuttle-table-groups { min-width: 0; }
 }
 
 @media (max-width: 380px) {

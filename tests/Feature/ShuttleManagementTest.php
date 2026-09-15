@@ -164,6 +164,38 @@ test('shuttle plan is operational for staff while configuration remains admin on
     $this->actingAs($scenario['admin'])->get(route('shuttles.settings.edit'))->assertOk();
 });
 
+test('shuttle plan lists outbound and return trips in one chronological sequence', function () {
+    $scenario = shuttleScenario();
+    $laterTrip = ShuttleTrip::query()->create([
+        'parking_id' => $scenario['parking']->id,
+        'shuttle_vehicle_id' => $scenario['vehicle']->id,
+        'direction' => ShuttleDirection::Outbound->value,
+        'scheduled_at' => '2030-09-05 14:30',
+        'status' => ShuttleTripStatus::Proposed->value,
+        'capacity' => 4,
+        'is_generated' => false,
+    ]);
+    $earlierTrip = ShuttleTrip::query()->create([
+        'parking_id' => $scenario['parking']->id,
+        'shuttle_vehicle_id' => $scenario['vehicle']->id,
+        'direction' => ShuttleDirection::Return->value,
+        'scheduled_at' => '2030-09-05 08:15',
+        'status' => ShuttleTripStatus::Proposed->value,
+        'capacity' => 4,
+        'is_generated' => false,
+    ]);
+
+    $response = $this->actingAs($scenario['admin'])
+        ->get(route('shuttles.index', [
+            'parking_id' => $scenario['parking']->id,
+            'date' => '2030-09-05',
+        ]))
+        ->assertOk();
+
+    expect($response->viewData('trips')->pluck('id')->all())
+        ->toBe([$earlierTrip->id, $laterTrip->id]);
+});
+
 test('disabled shuttle planning does not create trips', function () {
     $scenario = shuttleScenario();
     $scenario['settings']->update(['is_enabled' => false]);
