@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ __('Biglietto :reference', ['reference' => $reservation->external_id]) }}</title>
+    <title>{{ __('Biglietto :reference', ['reference' => $ticket['reference']]) }}</title>
     <style>
         :root { --paper-width: {{ $paperWidth }}mm; --paper-height: {{ $paperHeight }}mm; --blue: #245fd6; --ink: #172033; --muted: #5f687b; --line: #d9deea; }
         * { box-sizing: border-box; }
@@ -77,8 +77,8 @@
 </head>
 <body class="format-{{ $format }}">
     <div class="toolbar" aria-label="{{ __('Impostazioni di stampa') }}">
-        <a href="{{ route('reservations.show', $reservation) }}">{{ __('Torna alla prenotazione') }}</a>
-        <form method="GET" action="{{ route('reservations.ticket', $reservation) }}">
+        <a href="{{ $ticket['back_url'] }}">{{ __('Torna al dettaglio') }}</a>
+        <form method="GET" action="{{ $ticket['preview_url'] }}">
             <div class="field">
                 <label for="format">{{ __('Formato') }}</label>
                 <select id="format" name="format">
@@ -117,8 +117,8 @@
                     <img class="logo" src="{{ asset('img/sodano-consulting-source.png') }}" alt="{{ config('demo.brand_name', 'Sodano Consulting') }}">
                 @endif
                 <div class="parking">
-                    <strong>{{ __($reservation->parking->name) }}</strong>
-                    @if($reservation->parking->address)<span>{{ $reservation->parking->address }}</span>@endif
+                    <strong>{{ __($ticket['parking']->name) }}</strong>
+                    @if($ticket['parking']->address)<span>{{ $ticket['parking']->address }}</span>@endif
                 </div>
             </header>
 
@@ -127,16 +127,16 @@
 
             <div class="reference">
                 <span>{{ __('Riferimento prenotazione') }}</span>
-                <strong>{{ $reservation->external_id }}</strong>
+                <strong>{{ $ticket['reference'] }}</strong>
             </div>
 
             <dl class="details">
-                <div class="plate"><dt>{{ __('Targa') }}</dt><dd>{{ $reservation->license_plate ?: '—' }}</dd></div>
-                <div><dt>{{ __('Cliente') }}</dt><dd>{{ $reservation->customer_name }}</dd></div>
-                <div><dt>{{ __('Ingresso') }}</dt><dd>{{ $reservation->starts_at->format('d/m/Y H:i') }}</dd></div>
-                <div><dt>{{ __('Ritiro previsto') }}</dt><dd>{{ $reservation->ends_at->format('d/m/Y H:i') }}</dd></div>
-                <div><dt>{{ __('Tipologia') }}</dt><dd>{{ __($reservation->parkingProduct?->name ?? '—') }}</dd></div>
-                <div><dt>{{ __('Passeggeri') }}</dt><dd>{{ $reservation->passengers_count ?? 1 }}</dd></div>
+                <div class="plate"><dt>{{ __('Targa') }}</dt><dd>{{ $ticket['license_plate'] ?: '—' }}</dd></div>
+                <div><dt>{{ __('Cliente') }}</dt><dd>{{ $ticket['customer_name'] ?: '—' }}</dd></div>
+                <div><dt>{{ __('Ingresso') }}</dt><dd>{{ $ticket['starts_at']->format('d/m/Y H:i') }}</dd></div>
+                <div><dt>{{ $ticket['pickup_label'] }}</dt><dd>{{ $ticket['pickup_at']->format('d/m/Y H:i') }}</dd></div>
+                <div><dt>{{ __('Tipologia') }}</dt><dd>{{ $ticket['type'] }}</dd></div>
+                @if($ticket['passengers'] !== null)<div><dt>{{ __('Passeggeri') }}</dt><dd>{{ $ticket['passengers'] }}</dd></div>@endif
             </dl>
 
             @if($settings->ticket_footer)

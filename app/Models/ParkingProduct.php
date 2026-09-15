@@ -40,6 +40,21 @@ class ParkingProduct extends Model
         return $this->hasMany(PlatformProductMapping::class);
     }
 
+    public function garageRates(): HasMany
+    {
+        return $this->hasMany(GarageRate::class);
+    }
+
+    public function subscriptions(): HasMany
+    {
+        return $this->hasMany(ParkingSubscription::class);
+    }
+
+    public function stays(): HasMany
+    {
+        return $this->hasMany(ParkingStay::class);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('is_active', true);

@@ -58,7 +58,7 @@
 
                     {{-- Entrate --}}
                     <div>
-                        <div class="pm-stat-label">{{ __('Entrate') }}</div>
+                        <div class="pm-stat-label">{{ __('Ricavi') }}</div>
                         <div
                             style="font-size:22px;font-weight:600;color:var(--pm-green);font-family:var(--pm-mono);letter-spacing:-0.02em">
                             € {{ number_format($stat['this_revenue'], 2) }}

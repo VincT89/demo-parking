@@ -20,7 +20,7 @@
         </div>
     </x-slot>
 
-    <div style="display:flex;gap:8px;margin-bottom:24px" class="pm-animate">
+    <div style="display:flex;gap:8px;margin-bottom:24px" class="pm-animate calendar-actions">
         <a href="{{ route('calendar', ['parking_id' => $parking->id ?? '']) }}" class="pm-btn pm-btn-primary">
             {{ __('Vista calendario') }}
         </a>

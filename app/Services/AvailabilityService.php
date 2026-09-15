@@ -6,6 +6,8 @@ use App\Models\Parking;
 use App\Models\ParkingListing;
 use App\Models\Reservation;
 use App\Models\AvailabilityBlock;
+use App\Models\ParkingStay;
+use App\Models\ParkingSubscription;
 use Carbon\Carbon;
 
 class AvailabilityService
@@ -62,7 +64,16 @@ class AvailabilityService
         // Capacità specifica del prodotto
         $reservedSpotsProd = $this->countReservedSpots($product->id, $startsAt, $endsAt, $excludeReservationId);
         $allocatedSpotsProd = $this->countAllocatedSpotsForProduct($product->id, $startsAt, $endsAt);
-        $productCapacityAvail = max(0, $product->capacity - $reservedSpotsProd - $allocatedSpotsProd);
+        $subscriptionSpotsProd = $this->countSubscriptionSpotsForProduct($product->id, $startsAt, $endsAt);
+        $walkInSpotsProd = $this->countWalkInSpotsForProduct($product->id, $startsAt, $endsAt);
+        $productCapacityAvail = max(
+            0,
+            $product->capacity
+                - $reservedSpotsProd
+                - $allocatedSpotsProd
+                - $subscriptionSpotsProd
+                - $walkInSpotsProd,
+        );
 
         if ($parking->capacity_mode === 'per_product') {
             $availableSpots = $productCapacityAvail;
@@ -71,10 +82,20 @@ class AvailabilityService
             $reservedSpotsGlobal = $this->countAllReservedSpotsInParking($parking->id, $startsAt, $endsAt, $excludeReservationId);
             $blockedSpotsGlobal = $this->countBlockedSpots($parking->id, $startsAt, $endsAt);
             $allocatedSpotsGlobal = $this->countGlobalAllocatedSpots($parking->id, $startsAt, $endsAt);
+            $subscriptionSpotsGlobal = $this->countAllSubscriptionSpotsInParking($parking->id, $startsAt, $endsAt);
+            $walkInSpotsGlobal = $this->countAllWalkInSpotsInParking($parking->id, $startsAt, $endsAt);
             
             // Assumiamo che se total_spots non è definito (0), la capacità globale non sia un limite.
             $parkingTotalSpots = $parking->total_spots > 0 ? $parking->total_spots : 999999;
-            $parkingGlobalAvail = max(0, $parkingTotalSpots - $reservedSpotsGlobal - $blockedSpotsGlobal - $allocatedSpotsGlobal);
+            $parkingGlobalAvail = max(
+                0,
+                $parkingTotalSpots
+                    - $reservedSpotsGlobal
+                    - $blockedSpotsGlobal
+                    - $allocatedSpotsGlobal
+                    - $subscriptionSpotsGlobal
+                    - $walkInSpotsGlobal,
+            );
 
             // La disponibilità effettiva è il minimo tra quella del prodotto e quella globale del parcheggio
             $availableSpots = max(0, min($productCapacityAvail, $parkingGlobalAvail));
@@ -156,6 +177,44 @@ class AvailabilityService
             ->overlapping($startsAt, $endsAt)
             ->lockForUpdate()
             ->sum('spots');
+    }
+
+    public function countSubscriptionSpotsForProduct(int $productId, Carbon $startsAt, Carbon $endsAt): int
+    {
+        return (int) ParkingSubscription::query()
+            ->where('parking_product_id', $productId)
+            ->reservingBetween($startsAt, $endsAt)
+            ->lockForUpdate()
+            ->sum('reserved_spots');
+    }
+
+    public function countAllSubscriptionSpotsInParking(int $parkingId, Carbon $startsAt, Carbon $endsAt): int
+    {
+        return (int) ParkingSubscription::query()
+            ->where('parking_id', $parkingId)
+            ->reservingBetween($startsAt, $endsAt)
+            ->lockForUpdate()
+            ->sum('reserved_spots');
+    }
+
+    public function countWalkInSpotsForProduct(int $productId, Carbon $startsAt, Carbon $endsAt): int
+    {
+        return ParkingStay::query()
+            ->where('parking_product_id', $productId)
+            ->whereNull('parking_subscription_id')
+            ->occupyingBetween($startsAt, $endsAt)
+            ->lockForUpdate()
+            ->count();
+    }
+
+    public function countAllWalkInSpotsInParking(int $parkingId, Carbon $startsAt, Carbon $endsAt): int
+    {
+        return ParkingStay::query()
+            ->where('parking_id', $parkingId)
+            ->whereNull('parking_subscription_id')
+            ->occupyingBetween($startsAt, $endsAt)
+            ->lockForUpdate()
+            ->count();
     }
 
     public function checkAll(

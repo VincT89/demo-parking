@@ -15,6 +15,14 @@ class DatabaseSeeder extends Seeder
         // Pulisce le tabelle (ordine rispettando le FK, anche se disabilitate è buona pratica)
         \App\Models\ElectronicInvoice::truncate();
         \App\Models\ParkingSetting::truncate();
+        \App\Models\ShuttleTripAssignment::truncate();
+        \App\Models\ShuttleTrip::truncate();
+        \App\Models\ShuttleVehicle::truncate();
+        \App\Models\ShuttleSetting::truncate();
+        \App\Models\GaragePayment::truncate();
+        \App\Models\ParkingStay::truncate();
+        \App\Models\ParkingSubscription::truncate();
+        \App\Models\GarageRate::truncate();
         \App\Models\Payment::truncate();
         \App\Models\Reservation::truncate();
         \App\Models\AvailabilityBlock::truncate();

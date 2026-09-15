@@ -55,6 +55,41 @@ class Parking extends Model
       return $this->hasMany(ElectronicInvoice::class);
   }
 
+  public function garageRates(): HasMany
+  {
+      return $this->hasMany(GarageRate::class);
+  }
+
+  public function subscriptions(): HasMany
+  {
+      return $this->hasMany(ParkingSubscription::class);
+  }
+
+  public function stays(): HasMany
+  {
+      return $this->hasMany(ParkingStay::class);
+  }
+
+  public function garagePayments(): HasMany
+  {
+      return $this->hasMany(GaragePayment::class);
+  }
+
+  public function shuttleSetting(): HasOne
+  {
+      return $this->hasOne(ShuttleSetting::class);
+  }
+
+  public function shuttleVehicles(): HasMany
+  {
+      return $this->hasMany(ShuttleVehicle::class);
+  }
+
+  public function shuttleTrips(): HasMany
+  {
+      return $this->hasMany(ShuttleTrip::class);
+  }
+
   public function getComputedTotalSpots(): int
   {
       return (int) $this->products()->where('is_active', true)->sum('capacity');

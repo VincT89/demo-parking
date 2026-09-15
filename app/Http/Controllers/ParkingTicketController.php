@@ -3,16 +3,57 @@
 namespace App\Http\Controllers;
 
 use App\Models\ParkingSetting;
+use App\Models\ParkingStay;
 use App\Models\Reservation;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 
 class ParkingTicketController extends Controller
 {
     public function show(Request $request, Reservation $reservation)
     {
         $reservation->load(['parking', 'parkingProduct', 'parkingListing.platform']);
-        $settings = ParkingSetting::query()->firstOrCreate(['parking_id' => $reservation->parking_id]);
+
+        return $this->render($request, $reservation->parking_id, [
+            'reference' => $reservation->external_id,
+            'parking' => $reservation->parking,
+            'customer_name' => $reservation->customer_name,
+            'license_plate' => $reservation->license_plate,
+            'starts_at' => $reservation->starts_at,
+            'pickup_at' => $reservation->ends_at,
+            'pickup_label' => __('Ritiro previsto'),
+            'type' => __($reservation->parkingProduct?->name ?? '—'),
+            'passengers' => $reservation->passengers_count ?? 1,
+            'back_url' => route('reservations.show', $reservation),
+            'preview_url' => route('reservations.ticket', $reservation),
+        ]);
+    }
+
+    public function showStay(Request $request, ParkingStay $stay): View
+    {
+        $stay->load(['parking', 'parkingProduct', 'rate', 'subscription']);
+
+        return $this->render($request, $stay->parking_id, [
+            'reference' => $stay->reference,
+            'parking' => $stay->parking,
+            'customer_name' => $stay->customer_name,
+            'license_plate' => $stay->license_plate,
+            'starts_at' => $stay->starts_at,
+            'pickup_at' => $stay->ended_at ?? $stay->expected_ends_at,
+            'pickup_label' => $stay->ended_at ? __('Uscita effettiva') : __('Uscita prevista'),
+            'type' => $stay->subscription
+                ? __('Abbonamento')
+                : ($stay->rate?->name ?? __('Giornaliero')),
+            'passengers' => null,
+            'back_url' => route('garage.stays.show', $stay),
+            'preview_url' => route('garage.stays.ticket', $stay),
+        ]);
+    }
+
+    private function render(Request $request, int $parkingId, array $ticket): View
+    {
+        $settings = ParkingSetting::query()->firstOrCreate(['parking_id' => $parkingId]);
 
         $validated = validator($request->query(), [
             'format' => ['nullable', Rule::in(['a4', 'a6', 'label', 'custom'])],
@@ -37,7 +78,7 @@ class ParkingTicketController extends Controller
         }
 
         return view('reservations.ticket', [
-            'reservation' => $reservation,
+            'ticket' => $ticket,
             'settings' => $settings,
             'format' => $format,
             'orientation' => $orientation,

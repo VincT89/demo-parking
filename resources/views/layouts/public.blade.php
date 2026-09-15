@@ -8,7 +8,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ config('app.name', 'Parking Manager Demo') }} - {{ __('Prenotazione pubblica') }}</title>
+    <title>{{ config('app.name', 'Parking Manager Demo') }} - @yield('page_title', __('Prenotazione pubblica'))</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="pm-public" style="min-height:100vh;">
@@ -21,7 +21,7 @@
             <x-brand-logo variant="sidebar" />
             <div class="pm-public-topbar-divider"></div>
             <div class="pm-public-topbar-title">
-                {{ __('Prenotazione parcheggio') }}
+                @yield('topbar_title', __('Prenotazione parcheggio'))
             </div>
             <div class="pm-public-topbar-language"><x-locale-switcher /></div>
         </div>
@@ -31,10 +31,10 @@
     <div style="background: #1C1F2E; padding: 28px 24px 26px; position: relative; overflow: hidden;">
         <div style="max-width: 800px; margin: 0 auto; position: relative; z-index: 1;">
             <div style="font-size: 10px; font-weight: 500; letter-spacing: 1.8px; text-transform: uppercase; color: var(--pm-public-accent); margin-bottom: 7px;">
-                {{ __('Parcheggio aeroportuale dimostrativo') }}
+                @yield('hero_kicker', __('Parcheggio aeroportuale dimostrativo'))
             </div>
             <div style="font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 8px; line-height: 1.25;">
-                {{ __('Prenota il tuo parcheggio') }}
+                @yield('hero_title', __('Prenota il tuo parcheggio'))
             </div>
             <div style="font-size: 12px; color: rgba(255,255,255,0.45); display: flex; gap: 18px; flex-wrap: wrap;">
                 <span style="display:flex; align-items:center; gap:5px;">

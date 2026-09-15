@@ -17,7 +17,7 @@
     <div class="pm-stats-grid pm-mb-16">
         <div class="pm-stat pm-animate-1">
             <div class="pm-stat-label">{{ __('Occupazione oggi') }}</div>
-            <div class="pm-stat-value blue">{{ $physicalOccupied + $allocatedSpots }} / {{ $physicalTotal }}</div>
+            <div class="pm-stat-value blue">{{ $totalOccupied }} / {{ $physicalTotal }}</div>
             <div class="pm-stat-delta">{{ __(':percent% della capienza totale, inclusi i posti riservati', ['percent' => $physicalPct]) }}</div>
         </div>
 

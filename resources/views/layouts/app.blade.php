@@ -95,6 +95,33 @@
 
                 <div class="pm-sidebar-section">{{ __('Operativo') }}</div>
 
+                <a href="{{ route('garage.index') }}"
+                    class="pm-sidebar-link {{ request()->routeIs('garage.*') ? 'active' : '' }}"
+                    title="{{ __('Garage') }}">
+                    <span class="pm-sidebar-link-icon">
+                        <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <path d="M1.5 6.5 3 3h9l1.5 3.5v6H11v-2H4v2H1.5z" />
+                            <circle cx="4" cy="8" r="1" />
+                            <circle cx="11" cy="8" r="1" />
+                        </svg>
+                    </span>
+                    <span class="pm-sidebar-link-label">{{ __('Garage') }}</span>
+                </a>
+
+                <a href="{{ route('shuttles.index') }}"
+                    class="pm-sidebar-link {{ request()->routeIs('shuttles.*') ? 'active' : '' }}"
+                    title="{{ __('Navette') }}">
+                    <span class="pm-sidebar-link-icon">
+                        <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="1.5" y="2" width="12" height="9.5" rx="1.5" />
+                            <path d="M3.5 5h8M4 11.5v1.5m7-1.5V13" />
+                            <circle cx="4" cy="9" r=".7" fill="currentColor" />
+                            <circle cx="11" cy="9" r=".7" fill="currentColor" />
+                        </svg>
+                    </span>
+                    <span class="pm-sidebar-link-label">{{ __('Navette') }}</span>
+                </a>
+
                 <a href="{{ route('availability-blocks.index') }}"
                     class="pm-sidebar-link {{ request()->routeIs('availability-blocks.*') ? 'active' : '' }}"
                     title="{{ __('Blocchi') }}">

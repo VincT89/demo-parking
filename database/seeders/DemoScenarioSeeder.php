@@ -9,6 +9,12 @@ use App\Models\Platform;
 use App\Models\PlatformProductMapping;
 use App\Models\ParkingSetting;
 use App\Models\User;
+use App\Models\GaragePayment;
+use App\Models\GarageRate;
+use App\Models\ParkingStay;
+use App\Models\ParkingSubscription;
+use App\Models\ShuttleSetting;
+use App\Models\ShuttleVehicle;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -64,7 +70,7 @@ class DemoScenarioSeeder extends Seeder
         });
 
         User::query()->delete();
-        User::query()->create([
+        $admin = User::query()->create([
             'name' => 'Demo Administrator',
             'email' => 'demo@sodanoconsulting.it',
             'password' => Hash::make('password'),
@@ -77,6 +83,148 @@ class DemoScenarioSeeder extends Seeder
             'password' => Hash::make('password'),
             'role' => 'staff',
             'email_verified_at' => now(),
+        ]);
+
+        $garageProduct = ParkingProduct::query()
+            ->where('parking_id', $parking->id)
+            ->where('code', 'auto_open')
+            ->firstOrFail();
+
+        $monthlyRate = GarageRate::query()->create([
+            'parking_id' => $parking->id,
+            'parking_product_id' => $garageProduct->id,
+            'name' => 'Abbonamento mensile demo',
+            'kind' => 'subscription',
+            'billing_unit' => 'month',
+            'price' => 99,
+            'currency' => 'EUR',
+            'grace_minutes' => 0,
+            'minimum_units' => 1,
+            'is_active' => true,
+            'sort_order' => 10,
+        ]);
+
+        $dailyRate = GarageRate::query()->create([
+            'parking_id' => $parking->id,
+            'parking_product_id' => $garageProduct->id,
+            'name' => 'Sosta giornaliera demo',
+            'kind' => 'walk_in',
+            'billing_unit' => 'twenty_four_hours',
+            'price' => 15,
+            'currency' => 'EUR',
+            'grace_minutes' => 30,
+            'minimum_units' => 1,
+            'is_active' => true,
+            'sort_order' => 20,
+        ]);
+
+        $subscription = ParkingSubscription::query()->create([
+            'parking_id' => $parking->id,
+            'parking_product_id' => $garageProduct->id,
+            'garage_rate_id' => $monthlyRate->id,
+            'reference' => 'ABB-DEMO-001',
+            'customer_name' => 'Alex Demo',
+            'customer_email' => 'abbonato-demo@example.test',
+            'customer_phone' => '0000000000',
+            'license_plate' => 'DEMO-ABB-01',
+            'starts_on' => now()->startOfMonth()->toDateString(),
+            'paid_through' => now()->endOfMonth()->toDateString(),
+            'next_billing_on' => now()->addMonthNoOverflow()->startOfMonth()->toDateString(),
+            'status' => 'active',
+            'reserved_spots' => 1,
+            'price' => $monthlyRate->price,
+            'currency' => 'EUR',
+            'payment_mode' => 'stripe',
+            'notes' => 'Contratto e importi esclusivamente dimostrativi.',
+            'created_by' => $admin->id,
+        ]);
+
+        GaragePayment::query()->create([
+            'parking_id' => $parking->id,
+            'parking_subscription_id' => $subscription->id,
+            'provider' => 'manual',
+            'method' => 'card',
+            'status' => 'paid',
+            'amount' => $monthlyRate->price,
+            'currency' => 'EUR',
+            'billing_period_start' => now()->startOfMonth()->toDateString(),
+            'billing_period_end' => now()->endOfMonth()->toDateString(),
+            'recorded_by' => $admin->id,
+            'paid_at' => now()->startOfMonth()->addHours(9),
+            'raw_data' => ['demo' => true, 'source' => 'demo_seeder'],
+        ]);
+
+        ParkingStay::query()->create([
+            'parking_id' => $parking->id,
+            'parking_product_id' => $garageProduct->id,
+            'parking_subscription_id' => $subscription->id,
+            'reference' => 'SOSTA-DEMO-ABB',
+            'customer_name' => $subscription->customer_name,
+            'customer_email' => $subscription->customer_email,
+            'customer_phone' => $subscription->customer_phone,
+            'license_plate' => $subscription->license_plate,
+            'starts_at' => now()->subHours(2),
+            'expected_ends_at' => now()->addHours(6),
+            'status' => 'active',
+            'estimated_total' => 0,
+            'currency' => 'EUR',
+            'payment_status' => 'unpaid',
+            'notes' => 'Ingresso abbonato dimostrativo.',
+            'created_by' => $admin->id,
+        ]);
+
+        $completedStay = ParkingStay::query()->create([
+            'parking_id' => $parking->id,
+            'parking_product_id' => $garageProduct->id,
+            'garage_rate_id' => $dailyRate->id,
+            'reference' => 'SOSTA-DEMO-DAY',
+            'customer_name' => 'Taylor Demo',
+            'license_plate' => 'DEMO-DAY-01',
+            'starts_at' => now()->subDay()->setTime(8, 0),
+            'expected_ends_at' => now()->subDay()->setTime(18, 0),
+            'ended_at' => now()->subDay()->setTime(17, 45),
+            'status' => 'completed',
+            'billing_unit' => $dailyRate->billing_unit->value,
+            'unit_price' => $dailyRate->price,
+            'estimated_total' => $dailyRate->price,
+            'total_amount' => $dailyRate->price,
+            'currency' => 'EUR',
+            'payment_status' => 'paid',
+            'notes' => 'Sosta giornaliera dimostrativa.',
+            'created_by' => $admin->id,
+            'closed_by' => $admin->id,
+        ]);
+
+        GaragePayment::query()->create([
+            'parking_id' => $parking->id,
+            'parking_stay_id' => $completedStay->id,
+            'provider' => 'manual',
+            'method' => 'cash',
+            'status' => 'paid',
+            'amount' => $dailyRate->price,
+            'currency' => 'EUR',
+            'recorded_by' => $admin->id,
+            'paid_at' => $completedStay->ended_at,
+            'raw_data' => ['demo' => true, 'source' => 'demo_seeder'],
+        ]);
+
+        ShuttleSetting::query()->create([
+            'parking_id' => $parking->id,
+            'is_enabled' => true,
+            'default_capacity' => 8,
+            'grouping_window_minutes' => 30,
+            'turnaround_minutes' => 45,
+            'outbound_offset_minutes' => 15,
+            'return_offset_minutes' => 0,
+        ]);
+
+        ShuttleVehicle::query()->create([
+            'parking_id' => $parking->id,
+            'name' => 'Demo Shuttle 1',
+            'license_plate' => 'DEMO-NAV-01',
+            'seats' => 8,
+            'is_active' => true,
+            'notes' => 'Mezzo esclusivamente dimostrativo.',
         ]);
 
         PlatformProductMapping::query()->delete();

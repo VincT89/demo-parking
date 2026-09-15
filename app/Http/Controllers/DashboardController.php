@@ -42,7 +42,18 @@ class DashboardController extends Controller
             ->overlapping($today, $tomorrow)
             ->sum('spots');
 
-        $totalOccupied = $physicalOccupied + $allocatedSpots;
+        $subscriptionSpots = \App\Models\ParkingSubscription::query()
+            ->whereIn('parking_id', $parkingIds)
+            ->reservingBetween($today, $tomorrow)
+            ->sum('reserved_spots');
+
+        $walkInSpots = \App\Models\ParkingStay::query()
+            ->whereIn('parking_id', $parkingIds)
+            ->whereNull('parking_subscription_id')
+            ->occupyingBetween($today, $tomorrow)
+            ->count();
+
+        $totalOccupied = $physicalOccupied + $allocatedSpots + $subscriptionSpots + $walkInSpots;
         $physicalPct = $physicalTotal > 0 ? round(($totalOccupied / $physicalTotal) * 100) : 0;
 
         // 2. Performance Commerciale per Canale (OGGI)
@@ -125,6 +136,9 @@ class DashboardController extends Controller
             'physicalTotal',
             'physicalOccupied',
             'allocatedSpots',
+            'subscriptionSpots',
+            'walkInSpots',
+            'totalOccupied',
             'physicalPct',
             'commercialPerformance',
             'latestReservations',
