@@ -196,6 +196,43 @@ test('shuttle plan lists outbound and return trips in one chronological sequence
         ->toBe([$earlierTrip->id, $laterTrip->id]);
 });
 
+test('shuttle plan filters trips by direction status vehicle and customer search', function () {
+    $scenario = shuttleScenario();
+    $reservation = shuttleReservation($scenario, 'SHUTTLE-FIND', '2030-09-06 07:00', '2030-09-06 08:15', 2);
+    $matchingTrip = ShuttleTrip::query()->create([
+        'parking_id' => $scenario['parking']->id,
+        'direction' => ShuttleDirection::Return->value,
+        'scheduled_at' => '2030-09-06 08:15',
+        'status' => ShuttleTripStatus::Proposed->value,
+        'capacity' => 4,
+        'is_generated' => false,
+    ]);
+    ShuttleTrip::query()->create([
+        'parking_id' => $scenario['parking']->id,
+        'shuttle_vehicle_id' => $scenario['vehicle']->id,
+        'direction' => ShuttleDirection::Outbound->value,
+        'scheduled_at' => '2030-09-06 09:00',
+        'status' => ShuttleTripStatus::Confirmed->value,
+        'capacity' => 4,
+        'is_generated' => false,
+    ]);
+    app(ShuttlePlannerService::class)->assign($matchingTrip, $reservation, 1);
+
+    $response = $this->actingAs($scenario['admin'])
+        ->get(route('shuttles.index', [
+            'parking_id' => $scenario['parking']->id,
+            'date' => '2030-09-06',
+            'direction' => ShuttleDirection::Return->value,
+            'status' => ShuttleTripStatus::Proposed->value,
+            'vehicle' => 'unassigned',
+            'search' => 'SHUTTLE-FIND',
+        ]))
+        ->assertOk();
+
+    expect($response->viewData('trips')->pluck('id')->all())
+        ->toBe([$matchingTrip->id]);
+});
+
 test('disabled shuttle planning does not create trips', function () {
     $scenario = shuttleScenario();
     $scenario['settings']->update(['is_enabled' => false]);

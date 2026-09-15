@@ -26,6 +26,10 @@ class ShuttleController extends Controller
         $validated = $request->validate([
             'parking_id' => ['nullable', 'exists:parkings,id'],
             'date' => ['nullable', 'date_format:Y-m-d'],
+            'direction' => ['nullable', Rule::enum(ShuttleDirection::class)],
+            'status' => ['nullable', Rule::enum(ShuttleTripStatus::class)],
+            'vehicle' => ['nullable', 'regex:/^(unassigned|\d+)$/'],
+            'search' => ['nullable', 'string', 'max:100'],
         ]);
 
         $parkings = Parking::query()->active()->orderBy('name')->get();
@@ -40,9 +44,20 @@ class ShuttleController extends Controller
             ->orderBy('name')
             ->get();
 
+        $search = trim((string) ($validated['search'] ?? ''));
+        $vehicleFilter = $validated['vehicle'] ?? null;
+
         $trips = ShuttleTrip::query()
             ->where('parking_id', $parking->id)
             ->whereDate('scheduled_at', $date->toDateString())
+            ->when($validated['direction'] ?? null, fn ($query, $direction) => $query->where('direction', $direction))
+            ->when($validated['status'] ?? null, fn ($query, $status) => $query->where('status', $status))
+            ->when($vehicleFilter === 'unassigned', fn ($query) => $query->whereNull('shuttle_vehicle_id'))
+            ->when(is_numeric($vehicleFilter), fn ($query) => $query->where('shuttle_vehicle_id', (int) $vehicleFilter))
+            ->when($search !== '', fn ($query) => $query->whereHas('assignments.reservation', fn ($reservationQuery) => $reservationQuery
+                ->where('customer_name', 'like', "%{$search}%")
+                ->orWhere('flight_reference', 'like', "%{$search}%")
+                ->orWhere('external_id', 'like', "%{$search}%")))
             ->with(['vehicle', 'assignments.reservation'])
             ->orderBy('scheduled_at')
             ->orderBy('id')

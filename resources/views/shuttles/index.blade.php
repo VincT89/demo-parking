@@ -45,6 +45,40 @@
                 <div><h2 class="pm-card-title">{{ __('Piano navette') }}</h2><p class="pm-card-help">{{ __('Gruppi calcolati dalle prenotazioni e dai passeggeri') }}</p></div>
                 <span>{{ trans_choice(':count viaggio|:count viaggi', $trips->count(), ['count' => $trips->count()]) }}</span>
             </div>
+            <form method="GET" action="{{ route('shuttles.index') }}" class="pm-shuttle-filters">
+                <input type="hidden" name="parking_id" value="{{ $parking->id }}">
+                <input type="hidden" name="date" value="{{ $date->format('Y-m-d') }}">
+                <div class="pm-form-group">
+                    <label for="shuttle_direction_filter" class="pm-label">{{ __('Direzione') }}</label>
+                    <select id="shuttle_direction_filter" name="direction" class="pm-select">
+                        <option value="">{{ __('Tutte le direzioni') }}</option>
+                        @foreach($directions as $direction)<option value="{{ $direction->value }}" @selected(request('direction') === $direction->value)>{{ $direction->label() }}</option>@endforeach
+                    </select>
+                </div>
+                <div class="pm-form-group">
+                    <label for="shuttle_status_filter" class="pm-label">{{ __('Stato') }}</label>
+                    <select id="shuttle_status_filter" name="status" class="pm-select">
+                        <option value="">{{ __('Tutti gli stati') }}</option>
+                        @foreach($statuses as $status)<option value="{{ $status->value }}" @selected(request('status') === $status->value)>{{ $status->label() }}</option>@endforeach
+                    </select>
+                </div>
+                <div class="pm-form-group">
+                    <label for="shuttle_vehicle_filter" class="pm-label">{{ __('Navetta') }}</label>
+                    <select id="shuttle_vehicle_filter" name="vehicle" class="pm-select">
+                        <option value="">{{ __('Tutte le navette') }}</option>
+                        <option value="unassigned" @selected(request('vehicle') === 'unassigned')>{{ __('Da assegnare') }}</option>
+                        @foreach($vehicles as $vehicle)<option value="{{ $vehicle->id }}" @selected((string) request('vehicle') === (string) $vehicle->id)>{{ $vehicle->name }}</option>@endforeach
+                    </select>
+                </div>
+                <div class="pm-form-group">
+                    <label for="shuttle_search_filter" class="pm-label">{{ __('Cerca') }}</label>
+                    <input id="shuttle_search_filter" name="search" value="{{ request('search') }}" class="pm-input" placeholder="{{ __('Cerca cliente o volo') }}">
+                </div>
+                <div class="pm-shuttle-filter-actions">
+                    <button type="submit" class="pm-btn pm-btn-primary">{{ __('Filtra') }}</button>
+                    <a href="{{ route('shuttles.index', ['parking_id' => $parking->id, 'date' => $date->format('Y-m-d')]) }}" class="pm-btn pm-btn-secondary">{{ __('Reimposta') }}</a>
+                </div>
+            </form>
             <div class="pm-table-wrap">
                 <table class="pm-table pm-responsive-table pm-shuttle-table">
                     <thead>

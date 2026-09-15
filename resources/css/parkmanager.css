@@ -1586,6 +1586,8 @@ body.pm-public .pm-avail-no {
 .pm-shuttle-generate p { max-width: 360px; color: var(--pm-text-muted); font-size: 11px; text-align: right; }
 .pm-shuttle-table-header { gap: 16px; margin: 0; padding: 20px 24px; border-bottom: 1px solid var(--pm-border); }
 .pm-shuttle-table-header > span { flex: 0 0 auto; color: var(--pm-text-muted); font-size: 11px; }
+.pm-shuttle-filters { display: grid; grid-template-columns: repeat(3, minmax(140px, 1fr)) minmax(190px, 1.25fr) auto; gap: 12px; align-items: end; padding: 16px 24px; border-bottom: 1px solid var(--pm-border); }
+.pm-shuttle-filter-actions { display: flex; gap: 8px; }
 .pm-shuttle-table { min-width: 980px; }
 .pm-shuttle-table th:first-child,
 .pm-shuttle-table td:first-child { width: 74px; }
@@ -1627,6 +1629,8 @@ body.pm-public .pm-avail-no {
     .pm-garage-lists { grid-template-columns: 1fr; }
     .pm-garage-detail-grid { grid-template-columns: 1fr; }
     .pm-shuttle-trip-panel { grid-template-columns: 1fr; }
+    .pm-shuttle-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pm-shuttle-filter-actions { grid-column: 1 / -1; }
 }
 
 @media (max-width: 720px) {
@@ -1662,6 +1666,9 @@ body.pm-public .pm-avail-no {
     .pm-responsive-empty td { display: block; padding: 0 !important; border: 0 !important; }
     .pm-inline-reversal-form { min-width: 0; }
     .pm-shuttle-table-header { align-items: flex-start; padding: 18px 16px; }
+    .pm-shuttle-filters { grid-template-columns: 1fr; padding: 16px; }
+    .pm-shuttle-filter-actions { grid-column: auto; }
+    .pm-shuttle-filter-actions .pm-btn { flex: 1 1 0; justify-content: center; }
     .pm-shuttle-table { min-width: 0; }
     .pm-shuttle-table th:first-child,
     .pm-shuttle-table td:first-child,
