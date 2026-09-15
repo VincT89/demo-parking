@@ -96,7 +96,7 @@
                 <div class="pm-sidebar-section">{{ __('Operativo') }}</div>
 
                 <a href="{{ route('garage.index') }}"
-                    class="pm-sidebar-link {{ request()->routeIs('garage.*') ? 'active' : '' }}"
+                    class="pm-sidebar-link {{ request()->routeIs('garage.*') && ! request()->routeIs('garage.rates.*') ? 'active' : '' }}"
                     title="{{ __('Garage') }}">
                     <span class="pm-sidebar-link-icon">
                         <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -206,6 +206,18 @@
                             </svg>
                         </span>
                         <span class="pm-sidebar-link-label">{{ __('Parcheggi') }}</span>
+                    </a>
+
+                    <a href="{{ route('garage.rates.index') }}"
+                        class="pm-sidebar-link {{ request()->routeIs('garage.rates.*') ? 'active' : '' }}"
+                        title="{{ __('Tariffe garage') }}">
+                        <span class="pm-sidebar-link-icon">
+                            <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M2 13V5l5.5-3L13 5v8" />
+                                <path d="M3.5 13V6.5h8V13M3.5 8.5h8M3.5 10.5h8" />
+                            </svg>
+                        </span>
+                        <span class="pm-sidebar-link-label">{{ __('Tariffe garage') }}</span>
                     </a>
 
                     <a href="{{ route('operational-settings.edit') }}"

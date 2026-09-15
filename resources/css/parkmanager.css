@@ -1570,6 +1570,10 @@ body.pm-public .pm-avail-no {
 .pm-detail-notes strong { font-size: 12px; }
 .pm-detail-notes p { margin-top: 7px; color: var(--pm-text-muted); white-space: pre-line; overflow-wrap: anywhere; }
 .pm-field-help { color: var(--pm-text-muted); font-size: 11px; line-height: 1.4; }
+.pm-rate-empty-help { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.pm-rate-empty-help[hidden] { display: none; }
+.pm-rate-config-link { flex-shrink: 0; color: var(--pm-accent); font-size: 12px; font-weight: 600; text-decoration: none; }
+.pm-rate-config-link:hover { text-decoration: underline; }
 .pm-uppercase { text-transform: uppercase; }
 .pm-rate-list { display: grid; gap: 16px; margin-top: 20px; }
 .pm-rate-disable-form { display: flex; justify-content: flex-end; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--pm-border); }
@@ -1580,6 +1584,10 @@ body.pm-public .pm-avail-no {
 .pm-inline-reversal-form { display: grid; gap: 8px; min-width: 220px; margin-top: 9px; }
 .pm-stripe-simulation-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--pm-border); }
 .pm-api-name { font-family: var(--pm-mono); font-size: 13px !important; overflow-wrap: anywhere; }
+
+@media (max-width: 640px) {
+    .pm-rate-empty-help { align-items: flex-start; flex-direction: column; gap: 6px; }
+}
 
 .pm-shuttle-toolbar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; }
 .pm-shuttle-generate { display: grid; justify-items: end; gap: 7px; }

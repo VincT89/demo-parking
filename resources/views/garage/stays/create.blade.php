@@ -18,7 +18,28 @@
                     <div class="pm-form-group pm-form-span-2"><label for="stay_mode" class="pm-label pm-label-required">{{ __('Tipo ingresso') }}</label><select id="stay_mode" class="pm-select"><option value="walk_in">{{ __('Cliente giornaliero') }}</option><option value="subscription">{{ __('Cliente abbonato') }}</option></select></div>
                     <div class="pm-form-group"><label for="stay_parking" class="pm-label pm-label-required">{{ __('Parcheggio') }}</label><select id="stay_parking" name="parking_id" class="pm-select" required>@foreach($parkings as $parking)<option value="{{ $parking->id }}" @selected(old('parking_id') == $parking->id)>{{ __($parking->name) }}</option>@endforeach</select></div>
                     <div class="pm-form-group" data-walk-in><label for="stay_product" class="pm-label pm-label-required">{{ __('Categoria parcheggio') }}</label><select id="stay_product" name="parking_product_id" class="pm-select">@foreach($parkings as $parking) @foreach($parking->products as $product)<option value="{{ $product->id }}" data-parking="{{ $parking->id }}" @selected(old('parking_product_id') == $product->id)>{{ __($product->name) }}</option>@endforeach @endforeach</select></div>
-                    <div class="pm-form-group pm-form-span-2" data-walk-in><label for="stay_rate" class="pm-label pm-label-required">{{ __('Tariffa giornaliera') }}</label><select id="stay_rate" name="garage_rate_id" class="pm-select" required><option value="" data-empty-option>{{ __('Nessuna tariffa configurata.') }}</option>@foreach($parkings as $parking) @foreach($parking->garageRates as $rate)<option value="{{ $rate->id }}" data-parking="{{ $parking->id }}" data-product="{{ $rate->parking_product_id }}" @selected(old('garage_rate_id') == $rate->id)>{{ __($rate->name) }} · € {{ number_format((float) $rate->price, 2, ',', '.') }} / {{ $rate->billing_unit->label() }}</option>@endforeach @endforeach</select><span class="pm-field-help" data-rate-empty hidden>{{ __('Aggiungi almeno una tariffa mensile e una giornaliera per usare il modulo garage.') }}</span></div>
+                    <div class="pm-form-group pm-form-span-2" data-walk-in>
+                        <label for="stay_rate" class="pm-label pm-label-required">{{ __('Tariffa giornaliera') }}</label>
+                        <select id="stay_rate" name="garage_rate_id" class="pm-select" required>
+                            <option value="" data-empty-option>{{ __('Nessuna tariffa configurata.') }}</option>
+                            @foreach($parkings as $parking)
+                                @foreach($parking->garageRates as $rate)
+                                    <option value="{{ $rate->id }}" data-parking="{{ $parking->id }}" data-product="{{ $rate->parking_product_id }}" @selected(old('garage_rate_id') == $rate->id)>{{ __($rate->name) }} · € {{ number_format((float) $rate->price, 2, ',', '.') }} / {{ $rate->billing_unit->label() }}</option>
+                                @endforeach
+                            @endforeach
+                        </select>
+                        <div class="pm-rate-empty-help" data-rate-empty hidden>
+                            <span class="pm-field-help">{{ __('Aggiungi almeno una tariffa mensile e una giornaliera per usare il modulo garage.') }}</span>
+                            @can('manage-parkings')
+                                <a
+                                    href="{{ route('garage.rates.index', ['parking_id' => old('parking_id', $parkings->first()?->id)]) }}"
+                                    class="pm-rate-config-link"
+                                    data-rate-settings
+                                    data-base-url="{{ route('garage.rates.index') }}"
+                                >{{ __('Configura tariffe') }}</a>
+                            @endcan
+                        </div>
+                    </div>
                     <div class="pm-form-group pm-form-span-2" data-subscription hidden><label for="stay_subscription" class="pm-label pm-label-required">{{ __('Abbonamento') }}</label><select id="stay_subscription" name="parking_subscription_id" class="pm-select" disabled>@foreach($subscriptions as $subscription)<option value="{{ $subscription->id }}" data-parking="{{ $subscription->parking_id }}" @selected(old('parking_subscription_id') == $subscription->id)>{{ $subscription->customer_name }} · {{ $subscription->license_plate }} · {{ $subscription->reference }}</option>@endforeach</select></div>
                     <div class="pm-form-group"><label for="stay_customer" class="pm-label">{{ __('Cliente') }}</label><input id="stay_customer" name="customer_name" value="{{ old('customer_name') }}" class="pm-input"></div>
                     <div class="pm-form-group"><label for="stay_plate" class="pm-label" data-plate-label>{{ __('Targa') }}</label><input id="stay_plate" name="license_plate" value="{{ old('license_plate') }}" class="pm-input pm-uppercase"></div>
@@ -42,6 +63,7 @@
             const subscription = document.getElementById('stay_subscription');
             const plate = document.getElementById('stay_plate');
             const rateEmpty = document.querySelector('[data-rate-empty]');
+            const rateSettings = document.querySelector('[data-rate-settings]');
             const filter = (select, predicate) => {
                 const current = select.value;
                 let first = '';
@@ -64,6 +86,11 @@
                 emptyOption.disabled = hasRates;
                 rate.value = current && matching.some(option => option.value === current) ? current : (matching[0]?.value ?? '');
                 rateEmpty.hidden = hasRates;
+                if (rateSettings) {
+                    const settingsUrl = new URL(rateSettings.dataset.baseUrl, window.location.origin);
+                    settingsUrl.searchParams.set('parking_id', parking.value);
+                    rateSettings.href = settingsUrl.toString();
+                }
             };
             const syncParking = () => { filter(product, option => option.dataset.parking === parking.value); filter(subscription, option => option.dataset.parking === parking.value); syncRates(); };
             const syncMode = () => {
