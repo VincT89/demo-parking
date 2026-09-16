@@ -81,4 +81,7 @@
             </tbody></table></div>
         </section>
     </div>
+    @if($stay->customer_id)
+        <div class="pm-mt-20"><a class="pm-btn pm-btn-secondary" href="{{ route('customers.show', $stay->customer_id) }}">{{ __('Scheda cliente') }}</a></div>
+    @endif
 </x-app-layout>

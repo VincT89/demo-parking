@@ -122,6 +122,7 @@ class ReservationController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
             'parking_listing_id' => ['required', 'exists:parking_listings,id'],
             'parking_product_id' => ['required', 'exists:parking_products,id'],
             'customer_name'      => ['required', 'string', 'max:255'],
@@ -181,6 +182,7 @@ class ReservationController extends Controller
     public function update(Request $request, Reservation $reservation)
     {
         $validated = $request->validate([
+            'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
             'parking_product_id' => ['required', 'exists:parking_products,id'],
             'customer_name'  => ['required', 'string', 'max:255'],
             'customer_email' => ['nullable', 'email', 'max:255'],

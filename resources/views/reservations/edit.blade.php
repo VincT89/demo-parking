@@ -15,6 +15,7 @@
         <form method="POST" action="{{ route('reservations.update', $reservation) }}" class="pm-form">
             @csrf
             @method('PUT')
+            <x-customer-picker :record="$reservation" />
 
             <div class="pm-form-group" style="margin-bottom:24px;">
                 <label class="pm-label">{{ __('Categoria / Tipologia posto') }}</label>

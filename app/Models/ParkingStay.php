@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 class ParkingStay extends Model
 {
     protected $fillable = [
+        'customer_id',
         'uuid',
         'parking_id',
         'parking_product_id',
@@ -63,6 +64,11 @@ class ParkingStay extends Model
     public function parking(): BelongsTo
     {
         return $this->belongsTo(Parking::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function parkingProduct(): BelongsTo

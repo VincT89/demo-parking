@@ -70,6 +70,15 @@ class ResetDemoCommand extends Command
 
         $this->decorateScenario();
 
+        // Populate customer profiles only after importing all simulated reservations.
+        $customerExitCode = $this->call('db:seed', [
+            '--class' => \Database\Seeders\CustomerSeeder::class,
+            '--force' => true,
+        ]);
+        if ($customerExitCode !== self::SUCCESS) {
+            return $customerExitCode;
+        }
+
         $this->components->info(sprintf(
             'Demo ready: %d synthetic reservations imported from %d simulated platforms.',
             Reservation::query()->count(),

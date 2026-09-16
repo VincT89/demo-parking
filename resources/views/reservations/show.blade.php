@@ -172,4 +172,7 @@
 
     </div>
 
+    @if($reservation->customer_id)
+        <div class="pm-mt-20"><a class="pm-btn pm-btn-secondary" href="{{ route('customers.show', $reservation->customer_id) }}">{{ __('Scheda cliente') }}</a></div>
+    @endif
 </x-app-layout>

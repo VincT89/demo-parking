@@ -33,7 +33,7 @@ class ElectronicInvoiceController extends Controller
 
     public function create(Reservation $reservation)
     {
-        $reservation->load(['parking', 'electronicInvoice']);
+        $reservation->load(['parking', 'electronicInvoice', 'customer']);
 
         if ($reservation->electronicInvoice) {
             return redirect()->route('invoices.show', $reservation->electronicInvoice);

@@ -46,6 +46,13 @@ Route::post('/webhooks/paypal', [\App\Http\Controllers\PayPalWebhookController::
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard
+    Route::get('/customers/lookup', [\App\Http\Controllers\CustomerController::class, 'lookup'])->name('customers.lookup');
+    Route::resource('customers', \App\Http\Controllers\CustomerController::class)->except('destroy');
+    Route::get('/customers/{customer}/records', [\App\Http\Controllers\CustomerController::class, 'records'])->name('customers.records');
+    Route::post('/customers/{customer}/records', [\App\Http\Controllers\CustomerController::class, 'link'])->name('customers.records.link');
+    Route::patch('/customers/{customer}/status', [\App\Http\Controllers\CustomerController::class, 'status'])
+        ->middleware('can:manage-parkings')->name('customers.status');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 

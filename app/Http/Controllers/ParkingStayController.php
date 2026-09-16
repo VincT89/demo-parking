@@ -76,6 +76,7 @@ class ParkingStayController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
             'parking_id' => ['required', 'exists:parkings,id'],
             'parking_product_id' => ['nullable', 'exists:parking_products,id'],
             'garage_rate_id' => ['nullable', 'exists:garage_rates,id', 'required_without:parking_subscription_id'],

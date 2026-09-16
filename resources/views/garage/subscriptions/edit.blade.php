@@ -15,6 +15,7 @@
             <form method="POST" action="{{ route('garage.subscriptions.update', $subscription) }}" class="pm-form">
                 @csrf
                 @method('PUT')
+                <x-customer-picker :record="$subscription" />
                 <div class="pm-form-grid-2">
                     <div class="pm-form-group"><label class="pm-label">{{ __('Parcheggio') }}</label><input value="{{ __($subscription->parking->name) }}" class="pm-input" disabled></div>
                     <div class="pm-form-group"><label class="pm-label">{{ __('Categoria parcheggio') }}</label><input value="{{ __($subscription->parkingProduct->name) }}" class="pm-input" disabled></div>

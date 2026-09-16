@@ -39,52 +39,52 @@
                     <div class="pm-form-group">
                         <label class="pm-label" for="customer_type">{{ __('Tipo cliente') }}</label>
                         <select class="pm-select" id="customer_type" name="customer_type" required>
-                            <option value="person" @selected(old('customer_type') === 'person')>{{ __('Privato') }}</option>
-                            <option value="company" @selected(old('customer_type') === 'company')>{{ __('Azienda') }}</option>
+                            <option value="person" @selected(old('customer_type', $reservation->customer?->type ?? 'person') === 'person')>{{ __('Privato') }}</option>
+                            <option value="company" @selected(old('customer_type', $reservation->customer?->type) === 'company')>{{ __('Azienda') }}</option>
                         </select>
                     </div>
                     <div class="pm-form-group">
                         <label class="pm-label" for="customer_name">{{ __('Nome o ragione sociale') }}</label>
-                        <input class="pm-input" id="customer_name" name="customer_name" maxlength="80" value="{{ old('customer_name', $reservation->customer_name) }}" required>
+                        <input class="pm-input" id="customer_name" name="customer_name" maxlength="80" value="{{ old('customer_name', $reservation->customer?->name ?? $reservation->customer_name) }}" required>
                     </div>
                     <div class="pm-form-group">
                         <label class="pm-label" for="customer_fiscal_code">{{ __('Codice fiscale') }}</label>
-                        <input class="pm-input" id="customer_fiscal_code" name="customer_fiscal_code" maxlength="16" value="{{ old('customer_fiscal_code') }}">
+                        <input class="pm-input" id="customer_fiscal_code" name="customer_fiscal_code" maxlength="16" value="{{ old('customer_fiscal_code', $reservation->customer?->fiscal_code) }}">
                     </div>
                     <div class="pm-form-group">
                         <label class="pm-label" for="customer_vat_number">{{ __('Partita IVA') }}</label>
                         <div class="pm-country-input">
-                            <input class="pm-input" name="customer_vat_country" aria-label="{{ __('Paese IVA') }}" maxlength="2" value="{{ old('customer_vat_country', 'IT') }}" required>
-                            <input class="pm-input" id="customer_vat_number" name="customer_vat_number" value="{{ old('customer_vat_number') }}">
+                            <input class="pm-input" name="customer_vat_country" aria-label="{{ __('Paese IVA') }}" maxlength="2" value="{{ old('customer_vat_country', $reservation->customer?->vat_country ?? 'IT') }}" required>
+                            <input class="pm-input" id="customer_vat_number" name="customer_vat_number" value="{{ old('customer_vat_number', $reservation->customer?->vat_number) }}">
                         </div>
                     </div>
                     <div class="pm-form-group">
                         <label class="pm-label" for="customer_recipient_code">{{ __('Codice destinatario') }}</label>
-                        <input class="pm-input" id="customer_recipient_code" name="customer_recipient_code" maxlength="7" value="{{ old('customer_recipient_code') }}" placeholder="0000000">
+                        <input class="pm-input" id="customer_recipient_code" name="customer_recipient_code" maxlength="7" value="{{ old('customer_recipient_code', $reservation->customer?->recipient_code) }}" placeholder="0000000">
                     </div>
                     <div class="pm-form-group">
                         <label class="pm-label" for="customer_pec">{{ __('PEC destinatario') }}</label>
-                        <input class="pm-input" id="customer_pec" name="customer_pec" type="email" value="{{ old('customer_pec') }}">
+                        <input class="pm-input" id="customer_pec" name="customer_pec" type="email" value="{{ old('customer_pec', $reservation->customer?->pec) }}">
                     </div>
                     <div class="pm-form-group pm-form-span-2">
                         <label class="pm-label" for="customer_address">{{ __('Indirizzo') }}</label>
-                        <input class="pm-input" id="customer_address" name="customer_address" maxlength="60" value="{{ old('customer_address') }}" required>
+                        <input class="pm-input" id="customer_address" name="customer_address" maxlength="60" value="{{ old('customer_address', $reservation->customer?->address) }}" required>
                     </div>
                     <div class="pm-form-group">
                         <label class="pm-label" for="customer_postal_code">{{ __('CAP') }}</label>
-                        <input class="pm-input" id="customer_postal_code" name="customer_postal_code" value="{{ old('customer_postal_code') }}" required>
+                        <input class="pm-input" id="customer_postal_code" name="customer_postal_code" value="{{ old('customer_postal_code', $reservation->customer?->postal_code) }}" required>
                     </div>
                     <div class="pm-form-group">
                         <label class="pm-label" for="customer_city">{{ __('Comune') }}</label>
-                        <input class="pm-input" id="customer_city" name="customer_city" value="{{ old('customer_city') }}" required>
+                        <input class="pm-input" id="customer_city" name="customer_city" value="{{ old('customer_city', $reservation->customer?->city) }}" required>
                     </div>
                     <div class="pm-form-group">
                         <label class="pm-label" for="customer_province">{{ __('Provincia') }}</label>
-                        <input class="pm-input" id="customer_province" name="customer_province" maxlength="2" value="{{ old('customer_province') }}">
+                        <input class="pm-input" id="customer_province" name="customer_province" maxlength="2" value="{{ old('customer_province', $reservation->customer?->province) }}">
                     </div>
                     <div class="pm-form-group">
                         <label class="pm-label" for="customer_country">{{ __('Nazione') }}</label>
-                        <input class="pm-input" id="customer_country" name="customer_country" maxlength="2" value="{{ old('customer_country', 'IT') }}" required>
+                        <input class="pm-input" id="customer_country" name="customer_country" maxlength="2" value="{{ old('customer_country', $reservation->customer?->country ?? 'IT') }}" required>
                     </div>
                 </div>
             </section>

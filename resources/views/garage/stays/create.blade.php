@@ -14,6 +14,7 @@
         <div class="pm-card">
             <form method="POST" action="{{ route('garage.stays.store') }}" class="pm-form" id="stay-form">
                 @csrf
+                <div data-walk-in><x-customer-picker /></div>
                 <div class="pm-form-grid-2">
                     <div class="pm-form-group pm-form-span-2"><label for="stay_mode" class="pm-label pm-label-required">{{ __('Tipo ingresso') }}</label><select id="stay_mode" class="pm-select"><option value="walk_in">{{ __('Cliente giornaliero') }}</option><option value="subscription">{{ __('Cliente abbonato') }}</option></select></div>
                     <div class="pm-form-group"><label for="stay_parking" class="pm-label pm-label-required">{{ __('Parcheggio') }}</label><select id="stay_parking" name="parking_id" class="pm-select" required>@foreach($parkings as $parking)<option value="{{ $parking->id }}" @selected(old('parking_id') == $parking->id)>{{ __($parking->name) }}</option>@endforeach</select></div>
@@ -98,6 +99,7 @@
                 document.querySelectorAll('[data-walk-in]').forEach(element => element.hidden = isSubscription);
                 document.querySelectorAll('[data-subscription]').forEach(element => element.hidden = !isSubscription);
                 product.disabled = isSubscription; rate.disabled = isSubscription; subscription.disabled = !isSubscription;
+                document.querySelector('[data-customer-id]').disabled = isSubscription;
                 plate.required = !isSubscription;
             };
             parking.addEventListener('change', syncParking); product.addEventListener('change', syncRates); mode.addEventListener('change', syncMode);

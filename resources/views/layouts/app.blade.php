@@ -49,6 +49,18 @@
                     <span class="pm-sidebar-link-label">{{ __('Dashboard') }}</span>
                 </a>
 
+                <a href="{{ route('customers.index') }}"
+                    class="pm-sidebar-link {{ request()->routeIs('customers.*') ? 'active' : '' }}"
+                    title="{{ __('Clienti') }}">
+                    <span class="pm-sidebar-link-icon" aria-hidden="true">
+                        <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="7.5" cy="4" r="2.5" />
+                            <path d="M2 14v-1.5a5.5 5.5 0 0 1 11 0V14" />
+                        </svg>
+                    </span>
+                    <span class="pm-sidebar-link-label">{{ __('Clienti') }}</span>
+                </a>
+
                 <a href="{{ route('reservations.index') }}"
                     class="pm-sidebar-link {{ request()->routeIs('reservations.*') ? 'active' : '' }}"
                     title="{{ __('Prenotazioni') }}">

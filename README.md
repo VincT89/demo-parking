@@ -79,6 +79,38 @@ Le traduzioni sono in:
 
 La lingua scelta viene salvata nella sessione. L'inglese usa la variante britannica `en-GB`.
 
+## Anagrafica clienti e storico
+
+La sezione **Clienti** raccoglie privati e aziende, recapiti, dati di fatturazione facoltativi, note e più targhe per cliente. Le schede sono ricercabili per nome, email, telefono o targa e filtrabili per tipo e stato.
+
+Nei moduli di prenotazione, abbonamento e ingresso giornaliero puoi selezionare un cliente: i recapiti vengono proposti nel modulo e l'operazione entra nello storico della scheda. Gli ingressi di un abbonato ereditano il cliente dell'abbonamento. Lo storico include prenotazioni, abbonamenti, soste, pagamenti e fatture, con filtri per tipo e periodo.
+
+Le operazioni precedenti all'introduzione dell'anagrafica possono essere recuperate con il seeder dedicato descritto sotto. Per i casi da verificare usa **Collega operazioni esistenti** dalla scheda cliente. Collegando un abbonamento si collegano anche le sue soste. Le modifiche al profilo non riscrivono i dati registrati nelle operazioni e nelle fatture.
+
+L'archiviazione, riservata agli amministratori, conserva lo storico ma esclude il cliente dai nuovi inserimenti; un amministratore può riattivarlo.
+
+Per installare questo aggiornamento su un database già esistente, eseguire la nuova migrazione nel normale deploy:
+
+```sh
+php artisan migrate --force
+```
+
+La migrazione aggiunge le tabelle dell'anagrafica e collegamenti facoltativi: non cancella i dati esistenti. **Non usare `demo:reset` o `migrate:fresh` per questo aggiornamento.** Il database di produzione non viene modificato dai test locali.
+
+Per riempire l'anagrafica con i clienti delle prenotazioni, degli abbonamenti e delle soste già presenti, dopo la migrazione eseguire:
+
+```sh
+php artisan db:seed --class=CustomerSeeder --force
+```
+
+Specificare sempre `--class=CustomerSeeder`: il seeder generale del progetto svuota e ricrea altre tabelle e non va usato per questa operazione.
+
+Il seeder clienti è ripetibile: elabora solo operazioni non ancora collegate, non cancella dati, non modifica recapiti o note delle schede esistenti e conserva dati originali e date delle operazioni. I pagamenti e le fatture diventano visibili tramite i collegamenti, senza essere ricreati. Le targhe vengono aggiunte senza sostituire quelle già associate, fino al limite di 30 per scheda.
+
+Il riconoscimento richiede il nome insieme a email, telefono o targa normalizzati. I nominativi uguali da soli non vengono accorpati; senza identificativi ogni operazione conserva una scheda separata. Corrispondenze multiple o contrastanti, clienti archiviati, nomi mancanti e recapiti non validi sono segnalati per verifica manuale. Le soste degli abbonati ereditano il cliente già collegato al contratto, senza scambiare il conducente con il titolare. Gli abbonamenti con collegamenti manuali incoerenti non vengono modificati.
+
+La preparazione di una nuova demo richiama ora questo seeder anche dopo l'importazione delle prenotazioni simulate. Non occorre rigenerare una demo esistente per popolare l'anagrafica.
+
 ## Verifiche
 
 ```powershell

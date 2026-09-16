@@ -66,6 +66,7 @@ class ParkingSubscriptionController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
             'parking_id' => ['required', 'exists:parkings,id'],
             'parking_product_id' => ['required', 'exists:parking_products,id'],
             'garage_rate_id' => ['required', 'exists:garage_rates,id'],
@@ -125,6 +126,7 @@ class ParkingSubscriptionController extends Controller
     public function update(Request $request, ParkingSubscription $subscription)
     {
         $validated = $request->validate([
+            'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_email' => ['nullable', 'email', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:50'],

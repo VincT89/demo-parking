@@ -50,5 +50,7 @@ class DatabaseSeeder extends Seeder
         if (config('demo.enabled')) {
             $this->call(DemoScenarioSeeder::class);
         }
+
+        $this->call(CustomerSeeder::class);
     }
 }

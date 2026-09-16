@@ -76,6 +76,7 @@ class ReservationService
                 }
 
                 return Reservation::create([
+                    'customer_id'        => app(CustomerRegistryService::class)->operationCustomer($data),
                     'parking_id'         => $listing->parking_id,
                     'parking_product_id' => $data['parking_product_id'] ?? null,
                     'parking_listing_id' => $listing->id,
@@ -172,6 +173,7 @@ class ReservationService
                 }
 
                 $reservation->update([
+                    'customer_id' => app(CustomerRegistryService::class)->operationCustomer($data, $reservation->customer_id),
                     'parking_product_id' => isset($data['parking_product_id']) && $data['parking_product_id'] !== null 
                                         ? $data['parking_product_id'] 
                                         : $reservation->parking_product_id,

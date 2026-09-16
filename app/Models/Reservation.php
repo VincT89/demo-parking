@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Reservation extends Model
 {
     protected $fillable = [
+        'customer_id',
         'parking_id',
         'parking_product_id',
         'parking_listing_id',
@@ -62,6 +63,11 @@ class Reservation extends Model
     public function parking(): BelongsTo
     {
         return $this->belongsTo(Parking::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 
     public function parkingListing(): BelongsTo

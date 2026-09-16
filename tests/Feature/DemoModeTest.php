@@ -34,6 +34,13 @@ test('demo reset creates a rolling month of synthetic reservations without HTTP 
     expect(Reservation::query()->where('customer_email', 'not like', '%@example.test')->count())->toBe(0);
     expect(Reservation::query()->where('external_id', 'not like', 'DEMO-%')->count())->toBe(0);
     expect($syncResults->flatMap(fn (array $stats) => $stats['errors'])->all())->toBe([]);
+    $this->seed(\Database\Seeders\CustomerSeeder::class);
+    expect(\App\Models\Customer::count())->toBeGreaterThan(100);
+    expect(Reservation::query()->whereNotNull('customer_id')->count())->toBeGreaterThan(150);
+    expect(\App\Models\ParkingSubscription::whereNull('customer_id')->count())->toBe(0);
+    expect(\App\Models\ParkingStay::whereNull('customer_id')->count())->toBe(0);
+    $this->actingAs(User::query()->where('email', 'demo@sodanoconsulting.it')->firstOrFail())
+        ->get(route('customers.index'))->assertOk()->assertDontSee('Showing')->assertSee('risultati');
     expect(Hash::check('password', User::query()->where('email', 'demo@sodanoconsulting.it')->value('password')))->toBeTrue();
     expect(ParkingProduct::query()->where('is_active', true)->sum('capacity'))
         ->toBe(Parking::query()->value('total_spots'));

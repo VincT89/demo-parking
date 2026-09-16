@@ -61,6 +61,10 @@ class ParkingStayService
                 }
 
                 $data['parking_product_id'] = $subscription->parking_product_id;
+                if (! empty($data['customer_id']) && (int) $data['customer_id'] !== (int) $subscription->customer_id) {
+                    throw new LogicException(__('Collega prima l’abbonamento allo stesso cliente.'));
+                }
+                $data['customer_id'] = $subscription->customer_id;
                 $data['customer_name'] = $data['customer_name'] ?: $subscription->customer_name;
                 $data['customer_email'] = $data['customer_email'] ?: $subscription->customer_email;
                 $data['customer_phone'] = $data['customer_phone'] ?: $subscription->customer_phone;
@@ -95,6 +99,7 @@ class ParkingStayService
 
             return ParkingStay::query()->create([
                 ...$data,
+                'customer_id' => $subscription ? $subscription->customer_id : app(CustomerRegistryService::class)->operationCustomer($data),
                 'reference' => $this->reference((int) $data['parking_id']),
                 'parking_subscription_id' => $subscription?->id,
                 'garage_rate_id' => $rate?->id,

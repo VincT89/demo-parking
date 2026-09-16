@@ -48,6 +48,7 @@ class ParkingSubscriptionService
 
             return ParkingSubscription::query()->create([
                 ...$data,
+                'customer_id' => app(CustomerRegistryService::class)->operationCustomer($data),
                 'reference' => $this->reference($rate->parking_id),
                 'customer_name' => trim($data['customer_name']),
                 'license_plate' => Str::upper(trim($data['license_plate'])),
@@ -88,9 +89,18 @@ class ParkingSubscriptionService
 
             $subscription->update([
                 ...$data,
+                'customer_id' => app(CustomerRegistryService::class)->operationCustomer($data, $subscription->customer_id),
                 'customer_name' => trim($data['customer_name']),
                 'license_plate' => Str::upper(trim($data['license_plate'])),
             ]);
+
+            if ($subscription->customer_id && $subscription->wasChanged('customer_id')) {
+                $stays = $subscription->stays()->lockForUpdate()->get();
+                if ($stays->contains(fn ($stay) => $stay->customer_id && (int) $stay->customer_id !== $subscription->customer_id)) {
+                    throw new LogicException(__('L’operazione è già collegata a un altro cliente.'));
+                }
+                $subscription->stays()->whereNull('customer_id')->update(['customer_id' => $subscription->customer_id]);
+            }
 
             return $subscription->refresh();
         });
