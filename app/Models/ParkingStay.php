@@ -13,6 +13,8 @@ use Illuminate\Support\Str;
 
 class ParkingStay extends Model
 {
+    use \App\Models\Concerns\BelongsToParkingContext;
+
     protected $fillable = [
         'customer_id',
         'uuid',

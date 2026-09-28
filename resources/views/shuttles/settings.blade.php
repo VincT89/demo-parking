@@ -19,7 +19,7 @@
         <section class="pm-card pm-mt-20">
             <div class="pm-card-header pm-settings-card-header"><div><h2 class="pm-card-title">{{ __('Regole di pianificazione') }}</h2><p class="pm-card-help">{{ __('Il calcolo crea proposte; orari, mezzo e gruppi restano sempre modificabili.') }}</p></div></div>
             <form method="POST" action="{{ route('shuttles.settings.update', $parking) }}" class="pm-form">
-                @csrf @method('PUT')
+                @csrf @parkingContext @method('PUT')
                 <label class="pm-switch-row"><input type="checkbox" name="is_enabled" value="1" class="pm-checkbox" @checked(old('is_enabled', $settings->is_enabled))><span><strong>{{ __('Gestione navetta attiva') }}</strong><small>{{ __('Abilita il calcolo dei viaggi per questo parcheggio.') }}</small></span></label>
                 <div class="pm-form-grid-3">
                     <div class="pm-form-group"><label for="default_capacity" class="pm-label">{{ __('Capienza predefinita') }}</label><input id="default_capacity" name="default_capacity" type="number" min="1" max="100" value="{{ old('default_capacity', $settings->default_capacity ?? 1) }}" class="pm-input" required><small class="pm-field-help">{{ __('Usata quando nessun mezzo è assegnato.') }}</small></div>
@@ -35,7 +35,7 @@
         <section class="pm-card pm-mt-20">
             <div class="pm-card-header pm-settings-card-header"><div><h2 class="pm-card-title">{{ __('Aggiungi navetta') }}</h2><p class="pm-card-help">{{ __('La capienza del mezzo viene usata automaticamente nelle proposte.') }}</p></div></div>
             <form method="POST" action="{{ route('shuttles.vehicles.store') }}" class="pm-form">
-                @csrf
+                @csrf @parkingContext
                 <input type="hidden" name="parking_id" value="{{ $parking->id }}">
                 <div class="pm-form-grid-3">
                     <div class="pm-form-group"><label for="vehicle_name" class="pm-label pm-label-required">{{ __('Nome mezzo') }}</label><input id="vehicle_name" name="name" class="pm-input" required></div>
@@ -52,7 +52,7 @@
             @forelse($vehicles as $vehicle)
                 <article class="pm-card">
                     <form method="POST" action="{{ route('shuttles.vehicles.update', $vehicle) }}" class="pm-form">
-                        @csrf @method('PUT')
+                        @csrf @parkingContext @method('PUT')
                         <div class="pm-card-header"><div><h2 class="pm-card-title">{{ $vehicle->name }}</h2><p class="pm-card-help">{{ $vehicle->license_plate ?: __('Targa non indicata') }}</p></div><span class="pm-badge {{ $vehicle->is_active ? 'green' : 'gray' }}">{{ $vehicle->is_active ? __('Attiva') : __('Disattivata') }}</span></div>
                         <div class="pm-form-grid-3">
                             <div class="pm-form-group"><label class="pm-label">{{ __('Nome mezzo') }}</label><input name="name" value="{{ $vehicle->name }}" class="pm-input" required></div>
@@ -63,7 +63,7 @@
                         </div>
                         <div class="pm-form-actions"><button class="pm-btn pm-btn-primary" type="submit">{{ __('Salva modifiche') }}</button></div>
                     </form>
-                    @if($vehicle->is_active)<form method="POST" action="{{ route('shuttles.vehicles.destroy', $vehicle) }}" class="pm-rate-disable-form" onsubmit="return confirm(@js(__('Disattivare questa navetta?')))" >@csrf @method('DELETE')<button type="submit" class="pm-btn pm-btn-danger">{{ __('Disattiva') }}</button></form>@endif
+                    @if($vehicle->is_active)<form method="POST" action="{{ route('shuttles.vehicles.destroy', $vehicle) }}" class="pm-rate-disable-form" onsubmit="return confirm(@js(__('Disattivare questa navetta?')))" >@csrf @parkingContext @method('DELETE')<button type="submit" class="pm-btn pm-btn-danger">{{ __('Disattiva') }}</button></form>@endif
                 </article>
             @empty<div class="pm-card pm-empty-state"><strong>{{ __('Nessuna navetta configurata.') }}</strong><p>{{ __('Puoi comunque usare la capienza predefinita, ma il viaggio resterà senza mezzo assegnato.') }}</p></div>@endforelse
         </section>

@@ -48,7 +48,7 @@
                 </div>
                 <p style="font-size: 14px; margin-bottom: 16px; opacity: 0.9;">{{ __('Questa prenotazione è stata annullata automaticamente.') }}</p>
                 
-                <a href="{{ route('public.booking.form', ['fresh' => time()]) }}" style="display: inline-flex; align-items: center; background: white; color: #334155; border: 1px solid #cbd5e1; padding: 10px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+                <a href="{{ route('public.booking.form', ['parking' => $bookingParking->public_booking_key, 'fresh' => time()]) }}" style="display: inline-flex; align-items: center; background: white; color: #334155; border: 1px solid #cbd5e1; padding: 10px 16px; border-radius: 6px; font-weight: 500; font-size: 14px; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,0.05); transition: all 0.2s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
                     <svg style="width: 16px; height: 16px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                     {{ __('Ripeti la prenotazione') }}
                 </a>

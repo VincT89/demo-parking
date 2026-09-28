@@ -119,7 +119,7 @@
                                 </td>
                                 <td>
                                     <div style="display: flex; align-items: center; gap: 8px;">
-                                        <input type="checkbox" id="check_{{ $reservation->id }}" {{ ($type === 'entries' ? $reservation->has_entered : $reservation->has_exited) ? 'checked' : '' }} onchange="toggleMovement({{ $reservation->id }}, '{{ $type === 'entries' ? 'entered' : 'exited' }}', this.checked)" style="width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--pm-border); cursor: pointer;">
+                                        <input type="checkbox" id="check_{{ $reservation->id }}" {{ ($type === 'entries' ? $reservation->has_entered : $reservation->has_exited) ? 'checked' : '' }} onchange="toggleMovement({{ $reservation->id }}, '{{ $type === 'entries' ? 'entered' : 'exited' }}', this)" style="width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--pm-border); cursor: pointer;">
                                         <label for="check_{{ $reservation->id }}" style="font-size: 13px; color: var(--pm-text-muted); cursor: pointer; user-select: none; margin: 0;">
                                             {{ $type === 'entries'
                                                 ? __(':vehicle entrato', ['vehicle' => __($reservation->parkingProduct->name ?? 'Veicolo')])
@@ -136,27 +136,5 @@
         @endif
     </div>
 
-    <script>
-        function toggleMovement(reservationId, type, isChecked) {
-            fetch(`/reservations/${reservationId}/toggle-movement`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    type: type,
-                    value: isChecked
-                })
-            }).then(res => {
-                if (!res.ok) {
-                    alert(@js(__('Errore nel salvataggio dello stato.')));
-                }
-            }).catch(err => {
-                console.error(err);
-                alert(@js(__('Errore di rete nel salvataggio.')));
-            });
-        }
-    </script>
+
 </x-app-layout>

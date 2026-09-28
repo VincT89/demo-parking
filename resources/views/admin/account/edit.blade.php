@@ -15,7 +15,7 @@
             </div>
 
             <form method="POST" action="{{ route('admin.account.email.update') }}" class="pm-form">
-                @csrf
+                @csrf @parkingContext
                 @method('PUT')
 
                 <div class="pm-field">
@@ -46,7 +46,7 @@
             </div>
 
             <form method="POST" action="{{ route('admin.account.password.update') }}" class="pm-form">
-                @csrf
+                @csrf @parkingContext
                 @method('PUT')
 
                 <div class="pm-field">

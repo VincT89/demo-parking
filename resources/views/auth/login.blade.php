@@ -46,15 +46,33 @@
     </form>
 
     @if (config('demo.enabled'))
-        <dl class="pm-demo-credentials" aria-label="{{ __('Accesso dimostrativo') }}">
-            <div>
-                <dt>{{ __('Email') }}</dt>
-                <dd>demo@sodanoconsulting.it</dd>
-            </div>
-            <div>
-                <dt>{{ __('Password') }}</dt>
-                <dd>password</dd>
-            </div>
-        </dl>
+        <section class="pm-demo-accounts" aria-label="{{ __('Accessi dimostrativi') }}">
+            <section class="pm-demo-account" aria-labelledby="demo-access-ab">
+                <h2 id="demo-access-ab" class="pm-demo-account-title">{{ __('Accesso A+B') }}</h2>
+                <dl class="pm-demo-credentials">
+                    <div>
+                        <dt>{{ __('Email') }}</dt>
+                        <dd>demo@sodanoconsulting.it</dd>
+                    </div>
+                    <div>
+                        <dt>{{ __('Password') }}</dt>
+                        <dd>password</dd>
+                    </div>
+                </dl>
+            </section>
+            <section class="pm-demo-account" aria-labelledby="demo-access-b">
+                <h2 id="demo-access-b" class="pm-demo-account-title">{{ __('Accesso solo B') }}</h2>
+                <dl class="pm-demo-credentials">
+                    <div>
+                        <dt>{{ __('Email') }}</dt>
+                        <dd>socio@sodanoconsulting.it</dd>
+                    </div>
+                    <div>
+                        <dt>{{ __('Password') }}</dt>
+                        <dd>password</dd>
+                    </div>
+                </dl>
+            </section>
+        </section>
     @endif
 </x-guest-layout>

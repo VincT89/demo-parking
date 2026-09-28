@@ -27,11 +27,13 @@ class ReservationsExport implements
         private ?string $dateFrom   = null,
         private ?string $dateTo     = null,
         private ?string $dateFilterType = 'starts_at',
+        private ?int $parkingId = null,
     ) {}
 
     public function query()
     {
         $query = Reservation::query()
+            ->where('parking_id', $this->parkingId ?? 0)
             ->with(['parkingListing.platform', 'parkingListing.parking'])
             ->orderByDesc('starts_at');
 

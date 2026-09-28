@@ -23,6 +23,7 @@
         <div style="padding: 24px;">
             <form id="booking-form" action="{{ route('public.booking.store') }}" method="POST">
                 @csrf
+                <input type="hidden" name="parking" value="{{ $bookingParking->public_booking_key }}">
                 
                 <div class="pm-booking-grid pm-booking-grid--dates">
                     <div class="pm-form-group pm-booking-grid pm-booking-grid--date-time">
@@ -152,7 +153,7 @@
             btn.textContent = bookingMessages.checking;
             
             try {
-                const response = await fetch('{{ route('public.booking.check') }}', {
+                const response = await fetch('{{ route('public.booking.check', ['parking' => $bookingParking->public_booking_key]) }}', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -27,6 +27,13 @@ class SyncListingAction
      */
     public function execute(ParkingListing $listing, Carbon $from, Carbon $to, bool $dryRun = false, string $mode = 'modified'): array
     {
+        $parking = \App\Models\Parking::findOrFail($listing->parking_id);
+        return app(\App\Tenancy\ParkingContext::class)->run($parking,
+            fn () => $this->executeForParking($listing, $from, $to, $dryRun, $mode));
+    }
+
+    private function executeForParking(ParkingListing $listing, Carbon $from, Carbon $to, bool $dryRun, string $mode): array
+    {
         $stats = [
             'created' => 0,
             'updated' => 0,

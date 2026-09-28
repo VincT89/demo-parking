@@ -15,7 +15,7 @@
         @endif
         <div class="pm-card">
             <form method="POST" action="{{ route('garage.subscriptions.store') }}" class="pm-form" id="subscription-form">
-                @csrf
+                @csrf @parkingContext
                 <x-customer-picker />
                 <div class="pm-form-grid-2">
                     <div class="pm-form-group">

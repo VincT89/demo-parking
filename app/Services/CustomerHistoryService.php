@@ -31,6 +31,15 @@ class CustomerHistoryService
             ->join('parkings as p', 'p.id', '=', 'e.parking_id')->where('r.customer_id', $customer->id)
             ->selectRaw("'invoice' as kind, e.id, e.created_at as event_at, e.number as reference, p.name as parking_name, r.license_plate, e.status, e.total_amount as amount, 'EUR' as currency, e.customer_name as recorded_name");
 
+        $context = app(\App\Tenancy\ParkingContext::class);
+        foreach ([$reservation, $subscription, $stay, $payments, $garagePayments, $invoices] as $query) {
+            $query->where('p.management_id', $customer->management_id);
+            if ($context->restricted) {
+                abort_unless((int) $customer->management_id === $context->management?->id, 404);
+                $query->where('p.id', $context->parking?->id ?? 0);
+            }
+        }
+
         return DB::query()->fromSub($reservation->unionAll($subscription)->unionAll($stay)
             ->unionAll($payments)->unionAll($garagePayments)->unionAll($invoices), 'customer_history');
     }

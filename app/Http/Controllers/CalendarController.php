@@ -18,10 +18,7 @@ class CalendarController extends Controller
 
         $parkingId = $request->input('parking_id');
         $parking = $parkingId ? $parkings->firstWhere('id', $parkingId) : $parkings->first();
-        
-        if (!$parking) {
-            $parking = $parkings->first();
-        }
+        abort_unless($parking, 404);
 
         $totalSpots = $parking->getComputedTotalSpots();
         $platforms = \App\Models\Platform::active()->get();
@@ -40,9 +37,7 @@ class CalendarController extends Controller
         $parkingId = $request->input('parking_id');
         $parking = $parkingId ? $parkings->firstWhere('id', $parkingId) : $parkings->first();
         
-        if (!$parking) {
-            $parking = $parkings->first();
-        }
+        abort_unless($parking, 404);
 
         $month = $request->input('month', now()->month);
         $year = $request->input('year', now()->year);

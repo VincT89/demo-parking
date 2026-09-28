@@ -76,11 +76,11 @@ class ParkingStayController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'customer_id' => ['nullable', 'integer', 'exists:customers,id'],
-            'parking_id' => ['required', 'exists:parkings,id'],
-            'parking_product_id' => ['nullable', 'exists:parking_products,id'],
-            'garage_rate_id' => ['nullable', 'exists:garage_rates,id', 'required_without:parking_subscription_id'],
-            'parking_subscription_id' => ['nullable', 'exists:parking_subscriptions,id', 'required_without:garage_rate_id'],
+            'customer_id' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('customers', 'id')->where('management_id', app(\App\Tenancy\ParkingContext::class)->management?->id ?? 0)],
+            'parking_id' => ['required', \Illuminate\Validation\Rule::exists('parkings', 'id')->where('id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
+            'parking_product_id' => ['nullable', \Illuminate\Validation\Rule::exists('parking_products', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
+            'garage_rate_id' => ['nullable', \Illuminate\Validation\Rule::exists('garage_rates', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0), 'required_without:parking_subscription_id'],
+            'parking_subscription_id' => ['nullable', \Illuminate\Validation\Rule::exists('parking_subscriptions', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0), 'required_without:garage_rate_id'],
             'customer_name' => ['nullable', 'string', 'max:255'],
             'customer_email' => ['nullable', 'email', 'max:255'],
             'customer_phone' => ['nullable', 'string', 'max:50'],

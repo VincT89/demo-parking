@@ -11,6 +11,21 @@ use Illuminate\Support\Facades\Http;
 
 abstract class AbstractPlatformAdapter implements PlatformAdapterInterface
 {
+    protected ?array $configuration = null;
+
+    public function configure(array $configuration): static
+    {
+        $this->configuration = $configuration;
+        return $this;
+    }
+
+    protected function configurationOption(string $provider, string $key, mixed $default = null): mixed
+    {
+        return $this->configuration === null
+            ? config('services.'.$provider.'.'.$key, $default)
+            : ($this->configuration[$key] ?? $default);
+    }
+
     /**
      * Resolves the internal ParkingProduct for a given external reference.
      * Enforces strict resolution rules:
@@ -25,6 +40,7 @@ abstract class AbstractPlatformAdapter implements PlatformAdapterInterface
         $mappings = PlatformProductMapping::query()
             ->where('platform_id', $listing->platform_id)
             ->where('external_ref', $externalRef)
+            ->whereHas('parkingProduct', fn ($query) => $query->where('parking_id', $listing->parking_id))
             ->active()
             ->get();
 

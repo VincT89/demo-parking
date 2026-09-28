@@ -19,7 +19,7 @@
                 <div class="pm-definition-total"><dt>{{ __('API simulata') }}</dt><dd class="pm-api-name">stripe.checkout.sessions.create</dd></div>
             </dl>
             <form method="POST" action="{{ route('garage.stripe.simulate', $payment) }}" class="pm-stripe-simulation-actions">
-                @csrf
+                @csrf @parkingContext
                 <button type="submit" name="outcome" value="failure" class="pm-btn pm-btn-danger">{{ __('Simula pagamento non riuscito') }}</button>
                 <button type="submit" name="outcome" value="success" class="pm-btn pm-btn-primary">{{ __('Simula pagamento riuscito') }}</button>
             </form>

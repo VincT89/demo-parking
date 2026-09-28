@@ -11,6 +11,8 @@ use Illuminate\Support\Str;
 
 class ShuttleTrip extends Model
 {
+    use \App\Models\Concerns\BelongsToParkingContext;
+
     protected $fillable = [
         'uuid',
         'parking_id',

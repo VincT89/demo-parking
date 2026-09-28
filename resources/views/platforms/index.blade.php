@@ -11,14 +11,14 @@
             </button>
 
             <form method="POST" action="{{ route('platforms.future-sync') }}" onsubmit="return confirm(@js(config('demo.enabled') ? __('Simulare una chiamata API per i prossimi giorni?') : __('Recuperare le prenotazioni da oggi ai prossimi 6 mesi?'))) ">
-                @csrf
+                @csrf @parkingContext
                 <button type="submit" class="pm-btn pm-btn-secondary">
                     {{ config('demo.enabled') ? __('Prossimi giorni') : __('Prossimi 6 mesi') }}
                 </button>
             </form>
 
             <form method="POST" action="{{ route('platforms.sync') }}" onsubmit="return confirm(@js(config('demo.enabled') ? __('Simulare ora la risposta delle API?') : __('Vuoi avviare il sync manuale?'))) ">
-                @csrf
+                @csrf @parkingContext
                 <button type="submit" class="pm-btn pm-btn-primary">
                     {{ config('demo.enabled') ? __('Simula chiamata API') : __('Sincronizza piattaforme') }}
                 </button>
@@ -43,7 +43,7 @@
                         : __('Recupera le prenotazioni con entrata, uscita o permanenza nel periodo selezionato.') }}
                 </p>
                 <form method="POST" action="{{ route('platforms.historical-sync') }}" class="pm-form">
-                    @csrf
+                    @csrf @parkingContext
                     <div class="pm-field" style="margin-bottom:12px;">
                         <label class="pm-label" for="historical-sync-from">{{ __('Data inizio') }}</label>
                         <input type="date" id="historical-sync-from" name="from" class="pm-input" @if(config('demo.enabled')) min="{{ now()->subDays(config('demo.days_before', 7))->toDateString() }}" max="{{ now()->addDays(config('demo.days_after', 23))->toDateString() }}" @endif required>
@@ -124,7 +124,7 @@
                         <form method="POST"
                               action="{{ route('platforms.destroy', $platform) }}"
                               onsubmit="return confirm(@js(__('Disattivare la piattaforma?'))) ">
-                            @csrf
+                            @csrf @parkingContext
                             @method('DELETE')
                             <button type="submit" class="pm-btn pm-btn-danger pm-btn-sm">
                                 {{ __('Disattiva') }}

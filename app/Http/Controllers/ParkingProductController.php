@@ -23,7 +23,7 @@ class ParkingProductController extends Controller
 
                 if ($isDelete) {
                     if ($id) {
-                        ParkingProduct::whereKey($id)->update(['is_active' => false]);
+                        ParkingProduct::findOrFail($id)->update(['is_active' => false]);
                     }
                     continue;
                 }
@@ -39,7 +39,7 @@ class ParkingProductController extends Controller
                 ];
 
                 if ($id) {
-                    ParkingProduct::whereKey($id)->update($mappedData);
+                    ParkingProduct::findOrFail($id)->update($mappedData);
                 } else {
                     ParkingProduct::create($mappedData);
                 }
@@ -48,7 +48,7 @@ class ParkingProductController extends Controller
 
         // Trigger Cache clear nel caso in cui i prodotti siano mutati e l'AlertCount debba refresharsi
         if (auth()->check()) {
-            cache()->forget('alert_count_' . auth()->id());
+            cache()->forget('alert_count_' . auth()->id() . '_parking_' . $parking->id);
         }
 
         return redirect()->route('parkings.edit', $parking)->with('success', 'Prodotti del parcheggio aggiornati correttamente.');

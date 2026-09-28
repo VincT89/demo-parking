@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ShuttleTripAssignment extends Model
 {
+    use \App\Models\Concerns\BelongsToParkingContext;
+
     protected $fillable = [
         'shuttle_trip_id',
         'reservation_id',

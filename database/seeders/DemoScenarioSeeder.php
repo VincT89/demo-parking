@@ -26,7 +26,14 @@ class DemoScenarioSeeder extends Seeder
             return;
         }
 
-        $parking = Parking::query()->firstOrFail();
+        $context = app(\App\Tenancy\ParkingContext::class);
+        if (! $context->restricted || ! $context->parking || ! $context->management?->is_initial
+            || \App\Models\Management::count() !== 1 || User::exists()
+            || Parking::withoutGlobalScopes()->count() !== 1) {
+            throw new \RuntimeException('DemoScenarioSeeder is only for a fresh demo installation. Existing accounts were not changed.');
+        }
+
+        $parking = $context->parking;
         $parking->update([
             'name' => 'Parcheggio Aeroporto Demo',
             'address' => 'Via Dimostrazione 1, Bari',
@@ -69,7 +76,6 @@ class DemoScenarioSeeder extends Seeder
             ]);
         });
 
-        User::query()->delete();
         $admin = User::query()->create([
             'name' => 'Demo Administrator',
             'email' => 'demo@sodanoconsulting.it',

@@ -26,7 +26,7 @@
         </div>
 
         <form method="POST" action="{{ route('invoices.store', $reservation) }}" class="pm-form">
-            @csrf
+            @csrf @parkingContext
             <section class="pm-card">
                 <div class="pm-card-header">
                     <div>

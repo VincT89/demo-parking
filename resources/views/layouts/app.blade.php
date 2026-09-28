@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html
     lang="{{ config('app.supported_locales.'.app()->getLocale().'.html', str_replace('_', '-', app()->getLocale())) }}"
+    data-expand-menu="{{ __('Espandi menu') }}"
+    data-collapse-menu="{{ __('Riduci menu') }}"
+    data-context-changed="{{ __('Il parcheggio attivo è cambiato. Ricarica la pagina prima di salvare.') }}"
+    data-save-error="{{ __('Errore nel salvataggio dello stato.') }}"
+    data-network-error="{{ __('Errore di rete nel salvataggio.') }}"
+    data-print-blocked="{{ __('Uscita salvata. Il browser ha bloccato l’apertura della stampa: usa il pulsante nel dettaglio prenotazione.') }}"
     data-show-password="{{ __('Mostra password') }}"
     data-hide-password="{{ __('Nascondi password') }}"
 >
@@ -8,6 +14,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="parking-context" content="{{ $activeParking?->id ?? 0 }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'ParkManager') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -16,7 +23,7 @@
 <body>
 
     <div class="pm-layout" id="pm-layout">
-        <div class="pm-sidebar-overlay" id="pm-sidebar-overlay" onclick="toggleSidebarMobile()"></div>
+        <div class="pm-sidebar-overlay" id="pm-sidebar-overlay"></div>
 
         {{-- SIDEBAR --}}
         <aside class="pm-sidebar" id="pm-sidebar">
@@ -25,13 +32,14 @@
                 <a href="{{ route('dashboard') }}" class="pm-sidebar-logo">
                     <x-brand-logo variant="sidebar" />
                 </a>
-                <button class="pm-sidebar-toggle" onclick="toggleSidebar()" title="{{ __('Comprimi sidebar') }}" aria-label="{{ __('Comprimi sidebar') }}">
+                <button class="pm-sidebar-toggle" title="{{ __('Comprimi sidebar') }}" aria-label="{{ __('Comprimi sidebar') }}">
                     <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
                         <polyline points="9,3 4,7.5 9,12" />
                     </svg>
                 </button>
             </div>
 
+            <button type="button" class="pm-sidebar-close" aria-controls="pm-sidebar" aria-label="{{ __('Chiudi menu') }}">{{ __('Chiudi') }}</button>
             <nav class="pm-sidebar-nav">
 
                 <div class="pm-sidebar-section">{{ __('Principale') }}</div>
@@ -75,7 +83,7 @@
                     <span class="pm-sidebar-link-label">{{ __('Prenotazioni') }}</span>
                 </a>
 
-                <a href="{{ route('public.booking.form') }}"
+                <a href="{{ route('public.booking.form', ['parking' => $activeParking?->public_booking_key]) }}"
                     class="pm-sidebar-link"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -208,6 +216,8 @@
                 @endif
 
                 @can('manage-parkings')
+                    <a href="{{ route('management.users.index') }}" class="pm-sidebar-link {{ request()->routeIs('management.users.*') ? 'active' : '' }}" title="{{ __('Utenti') }}"><span class="pm-sidebar-link-icon" aria-hidden="true"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="4" r="2.5"/><path d="M.8 14v-2a4.2 4.2 0 0 1 8.4 0v2M10 1.8a2.5 2.5 0 0 1 0 4.7M11 9a3.5 3.5 0 0 1 3.2 3.5V14"/></svg></span><span class="pm-sidebar-link-label">{{ __('Utenti') }}</span></a>
+                    <a href="{{ route('management.activity') }}" class="pm-sidebar-link {{ request()->routeIs('management.activity') ? 'active' : '' }}" title="{{ __('Registro attività') }}"><span class="pm-sidebar-link-icon" aria-hidden="true"><svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="1" width="11" height="13" rx="1"/><path d="M5 4h5M5 7.5h5M5 11h3"/></svg></span><span class="pm-sidebar-link-label">{{ __('Registro attività') }}</span></a>
                     <a href="{{ route('parkings.index') }}"
                         class="pm-sidebar-link {{ request()->routeIs('parkings.*') ? 'active' : '' }}"
                         title="{{ __('Parcheggi') }}">
@@ -258,12 +268,12 @@
 
                         <div class="pm-sidebar-user-info">
                             <div class="pm-sidebar-user-name">{{ auth()->user()->name }}</div>
-                            <div class="pm-sidebar-user-role">{{ auth()->user()->role->label() }}</div>
+                            <div class="pm-sidebar-user-role">{{ auth()->user()->currentRole()?->label() }}</div>
                         </div>
                     </a>
 
                     <form method="POST" action="{{ route('logout') }}" style="flex-shrink:0">
-                        @csrf
+                        @csrf @parkingContext
                         <button type="submit" class="pm-sidebar-logout" title="{{ __('Esci') }}">
                             {{ __('Esci') }}
                         </button>
@@ -277,10 +287,25 @@
         <div class="pm-content" id="pm-content">
 
             <x-demo-banner />
+            <section class="pm-parking-context" aria-label="{{ __('Parcheggio attivo') }}">
+                <form method="POST" action="{{ route('parking.switch') }}" class="pm-parking-switch">
+                    @csrf @parkingContext
+                    <div class="pm-parking-switch-field">
+                        <label for="active-parking" class="pm-label">{{ __('Parcheggio attivo') }}</label>
+                        <select id="active-parking" name="parking_id" class="pm-select" required>
+                            @foreach(($accessibleParkings ?? collect()) as $availableParking)
+                                <option value="{{ $availableParking->id }}" @selected($activeParking?->id === $availableParking->id)>{{ $availableParking->name }}{{ $availableParking->is_active ? '' : ' — '.__('Inattivo') }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button type="submit" class="pm-btn pm-btn-secondary" @disabled(($accessibleParkings ?? collect())->isEmpty())>{{ __('Cambia') }}</button>
+                </form>
+                <p class="pm-form-note">{{ __('Gestione') }}: {{ $activeManagement?->name }}</p>
+            </section>
 
             @if (isset($header))
                 <div class="pm-topbar">
-                    <button class="pm-mobile-menu-btn" onclick="toggleSidebarMobile()" title="{{ __('Menu') }}" aria-label="{{ __('Menu') }}">
+                    <button class="pm-mobile-menu-btn" title="{{ __('Menu') }}" aria-label="{{ __('Menu') }}">
                         <svg viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.5">
                             <line x1="2" y1="4" x2="13" y2="4"/>
                             <line x1="2" y1="7.5" x2="13" y2="7.5"/>
@@ -292,6 +317,7 @@
             @endif
 
             <main class="pm-main">
+                <div id="pm-request-error" class="pm-alert pm-alert-error" role="alert" hidden></div>
                 {{ $slot }}
             </main>
 
@@ -299,31 +325,7 @@
 
     </div>
 
-    <script>
-        function toggleSidebar() {
-            const sidebar = document.getElementById('pm-sidebar');
-            const content = document.getElementById('pm-content');
-            sidebar.classList.toggle('collapsed');
-            content.classList.toggle('collapsed');
-            localStorage.setItem('pm-sidebar-collapsed', sidebar.classList.contains('collapsed'));
-        }
 
-        function toggleSidebarMobile() {
-            const sidebar = document.getElementById('pm-sidebar');
-            const overlay = document.getElementById('pm-sidebar-overlay');
-            sidebar.classList.toggle('mobile-open');
-            overlay.classList.toggle('active');
-        }
-
-        // Ripristina stato al caricamento
-        (function() {
-            const collapsed = localStorage.getItem('pm-sidebar-collapsed') === 'true';
-            if (collapsed && window.innerWidth > 1024) {
-                document.getElementById('pm-sidebar').classList.add('collapsed');
-                document.getElementById('pm-content').classList.add('collapsed');
-            }
-        })();
-    </script>
 
 </body>
 

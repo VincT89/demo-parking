@@ -13,12 +13,15 @@ class RooshProviderClient
     private string $clientId;
     private int $timeout;
 
-    public function __construct()
+    private ?array $settings;
+
+    public function __construct(?array $settings = null)
     {
-        $this->baseUrl = rtrim(config('services.vologio.base_url') ?? '', '/');
-        $this->apiKey = config('services.vologio.api_key') ?? '';
-        $this->clientId = config('services.vologio.client_id') ?? '';
-        $this->timeout = (int) config('services.vologio.timeout', 20);
+        $this->settings = $settings;
+        $this->baseUrl = rtrim($this->setting('base_url') ?? '', '/');
+        $this->apiKey = $this->setting('api_key') ?? '';
+        $this->clientId = $this->setting('client_id') ?? '';
+        $this->timeout = (int) $this->setting('timeout', 20);
     }
 
     protected function request(): PendingRequest
@@ -163,5 +166,11 @@ class RooshProviderClient
         } while (true);
 
         return $allBookings;
+    }
+    private function setting(string $key, mixed $default = null): mixed
+    {
+        return $this->settings === null
+            ? config('services.vologio.'.$key, $default)
+            : ($this->settings[$key] ?? $default);
     }
 }

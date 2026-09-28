@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ParkingCapacityAllocation extends Model
 {
+    use \App\Models\Concerns\BelongsToParkingContext;
+
     use HasFactory;
 
     protected $fillable = [

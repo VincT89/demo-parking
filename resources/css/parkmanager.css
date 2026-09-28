@@ -239,6 +239,10 @@ body {
 .pm-auth-logo .pm-brand-logo--full { width: 225px; height: 70px; }
 .pm-auth-actions { display: flex; align-items: center; gap: 12px; padding-top: 2px; }
 .pm-auth-submit { flex: 1; justify-content: center; min-height: 40px; }
+.pm-demo-accounts { display: grid; gap: 14px; margin-top: 20px; }
+.pm-demo-account { min-width: 0; }
+.pm-demo-account-title { color: var(--pm-text); font-size: 12px; font-weight: 600; line-height: 1.5; }
+.pm-demo-account .pm-demo-credentials { margin-top: 6px; }
 .pm-demo-credentials {
     margin-top: 20px;
     border: 1px solid var(--pm-border);
@@ -793,7 +797,7 @@ body {
     .pm-auth-language .pm-locale-switcher[open] { margin-bottom: 118px; }
     .pm-auth-logo { margin-bottom: 28px; }
     .pm-auth-logo .pm-brand-logo--full { width: 210px; height: 64px; }
-    .pm-demo-credentials > div { grid-template-columns:58px minmax(0, 1fr);gap:8px;padding:9px 10px; }
+    .pm-demo-credentials > div { gap:8px;padding:9px 10px; }
     .pm-demo-credentials dd { font-size:11px; }
     .pm-topbar {
         height: auto;
@@ -1695,4 +1699,40 @@ body.pm-public .pm-avail-no {
     .pm-responsive-table td[data-label] { grid-column: auto; }
     .pm-unassigned-list > div { grid-template-columns: 46px minmax(0, 1fr); }
     .pm-unassigned-list > div span:last-child { grid-column: 2; }
+}
+
+/* Management controls share the demo's existing form styles. */
+.pm-parking-context { padding:12px 32px; background:var(--pm-bg-card, #fff); border-bottom:1px solid var(--pm-border); min-width:0; }
+.pm-parking-switch { display:flex; align-items:flex-end; flex-wrap:wrap; gap:10px; max-width:650px; }
+.pm-parking-switch-field { flex:1 1 220px; min-width:0; }
+.pm-parking-switch select { width:100%; max-width:100%; }
+.pm-parking-context .pm-form-note { margin:6px 0 0; overflow-wrap:anywhere; }
+.pm-management-options { margin:0 0 24px; padding:16px; border:1px solid var(--pm-border); border-radius:var(--pm-radius-sm); }
+.pm-management-options legend { padding:0 8px; font-weight:600; }
+.pm-form-note { font-size:13px; color:var(--pm-text-muted); line-height:1.55; }
+.pm-settings-grid, .pm-role-help { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.pm-role-help { margin:16px 0; }
+.pm-role-help dt { font-weight:600; }
+.pm-role-help dd { margin:6px 0 0; font-size:13px; line-height:1.55; }
+.pm-members-table { min-width:820px; }
+.pm-members-table td { overflow-wrap:anywhere; white-space:normal; }
+.pm-member-role-form { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
+.pm-member-role-form .pm-select { flex:1 1 120px; min-width:0; }
+.pm-management-page .pm-card { min-width:0; }
+.pm-management-page .pm-btn { white-space:normal; }
+.pm-management-page .pm-table-wrapper { position:relative; max-width:100%; overflow-x:auto; }
+.pm-management-page .pm-table-wrapper:focus-visible { outline:2px solid var(--pm-accent); }
+.pm-mobile-table-hint, .pm-sidebar-close { display:none; }
+.pm-sidebar-open { overflow:hidden; }
+@media(max-width:1024px) {
+    .pm-sidebar-close { display:block; margin:8px 16px; padding:8px; color:inherit; background:transparent; border:1px solid var(--pm-border); border-radius:4px; }
+}
+@media(max-width:640px) {
+    .pm-parking-context { padding:12px 16px; }
+    .pm-parking-switch { align-items:stretch; }
+    .pm-parking-switch-field { flex-basis:100%; }
+    .pm-parking-switch .pm-btn { margin-left:auto; }
+    .pm-settings-grid, .pm-role-help { grid-template-columns:minmax(0,1fr); }
+    .pm-mobile-table-hint { display:block; margin-bottom:10px; }
+    .pm-management-page .pm-card { padding:20px 16px; }
 }

@@ -19,8 +19,7 @@ class PublicBookingController extends Controller
 {
     public function showForm(Request $request)
     {
-        // Raccogliamo i codici prodotto univoci da tutti i parcheggi attivi
-        // Così mostriamo solo le tipologie logiche (es. 'standard', 'premium')
+        // Il contesto pubblico limita le tipologie al parcheggio di questo link.
         $products = ParkingProduct::whereHas('parking', function ($q) {
             $q->active();
         })->active()
@@ -31,13 +30,13 @@ class PublicBookingController extends Controller
             abort(404, __('Nessun prodotto disponibile per la prenotazione.'));
         }
 
-        return view('booking.form', compact('products'));
+        return view('booking.form', ['products' => $products, 'paymentSettings' => app(\App\Services\PaymentConfiguration::class)->forManagement()]);
     }
 
     public function checkAvailability(Request $request, ParkingAssignmentService $assignmentService)
     {
         $validated = $request->validate([
-            'product_code' => 'required|string|exists:parking_products,code',
+            'product_code' => ['required', 'string', \Illuminate\Validation\Rule::exists('parking_products', 'code')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking->id)->where('is_active', true)],
             'arrival_date' => ['required', 'date_format:Y-m-d'],
             'arrival_time' => ['required', 'date_format:H:i'],
             'departure_date' => ['required', 'date_format:Y-m-d'],
@@ -88,7 +87,7 @@ class PublicBookingController extends Controller
     public function store(Request $request, ReservationService $reservationService, ParkingAssignmentService $assignmentService)
     {
         $validated = $request->validate([
-            'product_code' => 'required|string|exists:parking_products,code',
+            'product_code' => ['required', 'string', \Illuminate\Validation\Rule::exists('parking_products', 'code')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking->id)->where('is_active', true)],
             'arrival_date' => ['required', 'date_format:Y-m-d'],
             'arrival_time' => ['required', 'date_format:H:i'],
             'departure_date' => ['required', 'date_format:Y-m-d'],
@@ -141,7 +140,7 @@ class PublicBookingController extends Controller
 
         $data = [
             'parking_product_id' => $assignment['product']->id,
-            'external_id' => 'WEB-' . strtoupper(\Illuminate\Support\Str::random(8)),
+            'external_id' => 'WEB-' . strtoupper(\Illuminate\Support\Str::random(32)),
             'customer_name' => $validated['customer_name'],
             'customer_email' => $validated['customer_email'],
             'customer_phone' => $validated['customer_phone'],

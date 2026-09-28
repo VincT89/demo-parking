@@ -12,7 +12,7 @@ class ParkingCapacityAllocationController extends Controller
     {
         $validated = $request->validate([
             'allocation_type' => ['required', 'string', 'in:rentcar,internal_use,partner,maintenance,other'],
-            'parking_product_id' => ['nullable', 'exists:parking_products,id'],
+            'parking_product_id' => ['nullable', \Illuminate\Validation\Rule::exists('parking_products', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'spots'           => ['required', 'integer', 'min:1'],
             'starts_at'       => ['required', 'date'],
             'ends_at'         => ['required', 'date', 'after:starts_at'],
@@ -38,7 +38,7 @@ class ParkingCapacityAllocationController extends Controller
 
         $validated = $request->validate([
             'allocation_type' => ['required', 'string', 'in:rentcar,internal_use,partner,maintenance,other'],
-            'parking_product_id' => ['nullable', 'exists:parking_products,id'],
+            'parking_product_id' => ['nullable', \Illuminate\Validation\Rule::exists('parking_products', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'spots'           => ['required', 'integer', 'min:1'],
             'starts_at'       => ['required', 'date'],
             'ends_at'         => ['required', 'date', 'after:starts_at'],

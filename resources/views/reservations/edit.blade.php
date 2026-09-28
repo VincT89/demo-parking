@@ -13,7 +13,7 @@
 
     <div class="pm-card pm-animate" style="max-width:720px">
         <form method="POST" action="{{ route('reservations.update', $reservation) }}" class="pm-form">
-            @csrf
+            @csrf @parkingContext
             @method('PUT')
             <x-customer-picker :record="$reservation" />
 

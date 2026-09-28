@@ -26,7 +26,7 @@ class UpsertParkingProductsRequest extends FormRequest
     {
         return [
             'products' => ['array'],
-            'products.*.id' => ['nullable', 'integer', 'exists:parking_products,id'],
+            'products.*.id' => ['nullable', 'integer', \Illuminate\Validation\Rule::exists('parking_products', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'products.*.delete' => ['boolean'],
             'products.*.name' => ['required_if:products.*.delete,false', 'string', 'max:255', 'distinct:strict'],
             'products.*.code' => ['required_if:products.*.delete,false', 'string', 'max:255', 'distinct:strict', 'regex:/^[a-z0-9_]+$/'],

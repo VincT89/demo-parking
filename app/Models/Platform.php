@@ -7,6 +7,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Platform extends Model 
 {
+  use \App\Models\Concerns\BelongsToParkingContext;
+
+  protected $hidden = ['connection_settings'];
+
+  public function management()
+  {
+      return $this->belongsTo(Management::class);
+  }
+
   protected $fillable = [
     'name',
     'slug',
@@ -18,6 +27,8 @@ class Platform extends Model
   protected function casts(): array
   {
     return [
+      'uses_legacy_credentials' => 'boolean',
+      'connection_settings' => 'encrypted:array',
       'is_active' => 'boolean',
     ];
   }

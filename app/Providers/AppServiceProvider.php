@@ -10,6 +10,7 @@ class AppServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
+        $this->app->scoped(\App\Tenancy\ParkingContext::class, fn () => new \App\Tenancy\ParkingContext());
         $this->app->singleton(\App\Integrations\AdapterRegistry::class, function ($app) {
             $registry = new \App\Integrations\AdapterRegistry();
 
@@ -50,6 +51,13 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Blade::directive('parkingContext', function () {
+            return '<input type="hidden" name="_parking_context" value="<?php echo (int) (app(\\App\\Tenancy\\ParkingContext::class)->parking?->id ?? 0); ?>">';
+        });
+        Gate::define('manage-shared-connections', function (User $user) {
+            return $user->isAdmin() && $user->managements()->where('is_initial', true)->wherePivot('role', 'admin')->exists();
+        });
+
         \Carbon\Carbon::setLocale(config('app.locale', 'it'));
 
         if (config('demo.enabled')) {
@@ -70,15 +78,24 @@ class AppServiceProvider extends ServiceProvider
             return $user->isAdmin();
         });
 
+        \Illuminate\Support\Facades\View::composer(['booking.*', 'layouts.public'], function ($view) {
+            $context = app(\App\Tenancy\ParkingContext::class);
+            $view->with('bookingParking', $context->parking)->with('bookingManagement', $context->management);
+        });
+
         \Illuminate\Support\Facades\View::composer('*', function ($view) {
-            if (auth()->check()) {
-                $alertCount = cache()->remember('alert_count_' . auth()->id(), 5, function () {
+            $context = app(\App\Tenancy\ParkingContext::class);
+            if (auth()->check() && $context->restricted && $context->management) {
+                $alertCount = cache()->remember('alert_count_' . auth()->id() . '_parking_' . ($context->parking?->id ?? 0), 5, function () {
                     $parkings = \App\Models\Parking::active()->get();
                     if ($parkings->isEmpty())
                         return 0;
                     return count((new \App\Services\AlertService())->getAlertsForParkings($parkings));
                 });
                 $view->with('alertCount', $alertCount);
+                $view->with('activeParking', $context->parking);
+                $view->with('activeManagement', $context->management);
+                $view->with('accessibleParkings', request()->attributes->get('accessible_parkings', collect()));
             }
         });
     }

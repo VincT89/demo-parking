@@ -17,7 +17,7 @@
                 <div class="pm-form-actions pm-form-span-2"><button type="submit" class="pm-btn pm-btn-secondary">{{ __('Mostra giornata') }}</button></div>
             </form>
             <form method="POST" action="{{ route('shuttles.generate') }}" class="pm-shuttle-generate">
-                @csrf
+                @csrf @parkingContext
                 <input type="hidden" name="parking_id" value="{{ $parking->id }}">
                 <input type="hidden" name="date" value="{{ $date->format('Y-m-d') }}">
                 <button type="submit" class="pm-btn pm-btn-primary" @disabled(!$settings?->is_enabled)>{{ __('Calcola viaggi') }}</button>
@@ -142,14 +142,14 @@
                                                     @forelse($trip->assignments as $assignment)
                                                         <div>
                                                             <div><strong>{{ $assignment->reservation->customer_name }}</strong><span>{{ $assignment->passengers }} {{ __('pax') }} · {{ $assignment->reservation->flight_reference ?: __('volo non indicato') }}</span></div>
-                                                            <form method="POST" action="{{ route('shuttles.assignments.destroy', $assignment) }}">@csrf @method('DELETE')<button type="submit" class="pm-text-button">{{ __('Rimuovi') }}</button></form>
+                                                            <form method="POST" action="{{ route('shuttles.assignments.destroy', $assignment) }}">@csrf @parkingContext @method('DELETE')<button type="submit" class="pm-text-button">{{ __('Rimuovi') }}</button></form>
                                                         </div>
                                                     @empty<div class="pm-shuttle-empty">{{ __('Nessun gruppo assegnato.') }}</div>@endforelse
                                                 </div>
 
                                                 @if($eligible->isNotEmpty() && $trip->remaining_seats > 0)
                                                     <form method="POST" action="{{ route('shuttles.assignments.store', $trip) }}" class="pm-form pm-shuttle-assignment-form">
-                                                        @csrf
+                                                        @csrf @parkingContext
                                                         <h3>{{ __('Assegna gruppo') }}</h3>
                                                         <div class="pm-form-group"><label class="pm-label">{{ __('Prenotazione') }}</label><select name="reservation_id" class="pm-select">@foreach($eligible as $item)<option value="{{ $item['reservation']->id }}">{{ $item['time']->format('H:i') }} · {{ $item['reservation']->customer_name }} · {{ $item['remaining'] }} {{ __('pax') }}</option>@endforeach</select></div>
                                                         <div class="pm-form-group"><label class="pm-label">{{ __('Passeggeri da assegnare') }}</label><input name="passengers" type="number" min="1" max="{{ $trip->remaining_seats }}" value="1" class="pm-input" required></div>
@@ -161,7 +161,7 @@
                                             <section class="pm-shuttle-panel-section" aria-labelledby="shuttle-edit-{{ $trip->id }}">
                                                 <h3 id="shuttle-edit-{{ $trip->id }}">{{ __('Modifica viaggio') }}</h3>
                                                 <form method="POST" action="{{ route('shuttles.trips.update', $trip) }}" class="pm-form pm-mt-16">
-                                                    @csrf @method('PUT')
+                                                    @csrf @parkingContext @method('PUT')
                                                     <div class="pm-form-grid-2">
                                                         <div class="pm-form-group"><label class="pm-label">{{ __('Orario') }}</label><input name="scheduled_at" type="datetime-local" value="{{ $trip->scheduled_at->format('Y-m-d\TH:i') }}" class="pm-input" required></div>
                                                         <div class="pm-form-group"><label class="pm-label">{{ __('Navetta') }}</label><select name="shuttle_vehicle_id" class="pm-select"><option value="">{{ __('Da assegnare') }}</option>@foreach($vehicles as $vehicle)<option value="{{ $vehicle->id }}" @selected($trip->shuttle_vehicle_id === $vehicle->id)>{{ $vehicle->name }} · {{ $vehicle->seats }} {{ __('posti') }}</option>@endforeach</select></div>
@@ -171,7 +171,7 @@
                                                     </div>
                                                     <div class="pm-form-actions"><button class="pm-btn pm-btn-primary" type="submit">{{ __('Salva modifiche') }}</button></div>
                                                 </form>
-                                                <form method="POST" action="{{ route('shuttles.trips.cancel', $trip) }}" class="pm-shuttle-cancel" onsubmit="return confirm(@js(__('Annullare questo viaggio?')))" >@csrf<button class="pm-text-button is-danger" type="submit">{{ __('Annulla viaggio') }}</button></form>
+                                                <form method="POST" action="{{ route('shuttles.trips.cancel', $trip) }}" class="pm-shuttle-cancel" onsubmit="return confirm(@js(__('Annullare questo viaggio?')))" >@csrf @parkingContext<button class="pm-text-button is-danger" type="submit">{{ __('Annulla viaggio') }}</button></form>
                                             </section>
                                         </div>
                                     </td>
@@ -188,7 +188,7 @@
         <section class="pm-card pm-mt-20">
             <div class="pm-card-header"><div><h2 class="pm-card-title">{{ __('Nuovo viaggio manuale') }}</h2><p class="pm-card-help">{{ __('Puoi aggiungere corse extra senza modificare le proposte già create.') }}</p></div></div>
             <form method="POST" action="{{ route('shuttles.trips.store') }}" class="pm-form">
-                @csrf
+                @csrf @parkingContext
                 <input type="hidden" name="parking_id" value="{{ $parking->id }}">
                 <input type="hidden" name="status" value="proposed">
                 <div class="pm-form-grid-3">

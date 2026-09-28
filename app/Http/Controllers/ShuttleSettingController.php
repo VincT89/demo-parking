@@ -72,7 +72,7 @@ class ShuttleSettingController extends Controller
         $parkingId = $vehicle?->parking_id ?? $request->integer('parking_id');
 
         return $request->validate([
-            'parking_id' => [$vehicle ? 'sometimes' : 'required', 'exists:parkings,id'],
+            'parking_id' => [$vehicle ? 'sometimes' : 'required', \Illuminate\Validation\Rule::exists('parkings', 'id')->where('id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'name' => ['required', 'string', 'max:120'],
             'license_plate' => [
                 'nullable',

@@ -31,7 +31,7 @@ class PlatformController extends Controller
     {
         $validated = $request->validate([
             'name'          => ['required', 'string', 'max:255'],
-            'slug'          => ['required', 'string', 'max:255', 'unique:platforms,slug'],
+            'slug'          => ['required', 'string', 'max:255', \Illuminate\Validation\Rule::unique('platforms', 'slug')->where('management_id', app(\App\Tenancy\ParkingContext::class)->management->id)],
             'website'       => ['nullable', 'url', 'max:255'],
             'contact_email' => ['nullable', 'email', 'max:255'],
             'is_active'     => ['boolean'],
@@ -47,7 +47,7 @@ class PlatformController extends Controller
 
         return redirect()
             ->route('platforms.index')
-            ->with('success', 'Piattaforma commerciale creata con successo.');
+            ->with('success', __('Piattaforma commerciale creata con successo.'));
     }
 
     public function edit(Platform $platform)
@@ -68,9 +68,12 @@ class PlatformController extends Controller
 
     public function update(Request $request, Platform $platform)
     {
+        if ($platform->uses_legacy_credentials && $request->input('slug') !== $platform->slug) {
+            \Illuminate\Support\Facades\Gate::authorize('manage-shared-connections');
+        }
         $validated = $request->validate([
             'name'          => ['required', 'string', 'max:255'],
-            'slug'          => ['required', 'string', 'max:255', 'unique:platforms,slug,' . $platform->id],
+            'slug'          => ['required', 'string', 'max:255', \Illuminate\Validation\Rule::unique('platforms', 'slug')->where('management_id', $platform->management_id)->ignore($platform->id)],
             'website'       => ['nullable', 'url', 'max:255'],
             'contact_email' => ['nullable', 'email', 'max:255'],
             // is_active omesso dal validate volutamente
@@ -86,13 +89,13 @@ class PlatformController extends Controller
 
         return redirect()
             ->route('platforms.index')
-            ->with('success', 'Configurazione piattaforma aggiornata.');
+            ->with('success', __('Configurazione piattaforma aggiornata.'));
     }
 
     public function attachToParking(Request $request, Platform $platform)
     {
         $validated = $request->validate([
-            'parking_id' => ['required', 'exists:parkings,id']
+            'parking_id' => ['required', \Illuminate\Validation\Rule::exists('parkings', 'id')->where('id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)]
         ]);
 
         $listing = ParkingListing::firstOrNew([
@@ -106,7 +109,7 @@ class PlatformController extends Controller
 
         return redirect()
             ->route('platforms.edit', $platform)
-            ->with('success', 'Canale collegato al parcheggio e abilitato alla vendita.');
+            ->with('success', __('Canale collegato al parcheggio e abilitato alla vendita.'));
     }
 
     public function destroy(Platform $platform)
@@ -115,13 +118,13 @@ class PlatformController extends Controller
 
         return redirect()
             ->route('platforms.index')
-            ->with('success', 'Piattaforma disattivata.');
+            ->with('success', __('Piattaforma disattivata.'));
     }
 
     public function storeMapping(Request $request, Platform $platform)
     {
         $validated = $request->validate([
-            'parking_product_id' => ['required', 'exists:parking_products,id'],
+            'parking_product_id' => ['required', \Illuminate\Validation\Rule::exists('parking_products', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'external_ref'       => ['required', 'string', 'max:255'],
             'external_name'      => ['nullable', 'string', 'max:255'],
         ]);
@@ -133,7 +136,7 @@ class PlatformController extends Controller
             ->first();
 
         if ($existing) {
-            return back()->withErrors(['external_ref' => 'Esiste già un mapping attivo per questo codice esterno.']);
+            return back()->withErrors(['external_ref' => __('Esiste già un mapping attivo per questo codice esterno.')]);
         }
 
         \App\Models\PlatformProductMapping::create([
@@ -144,13 +147,13 @@ class PlatformController extends Controller
             'is_active'          => true,
         ]);
 
-        return back()->with('success', 'Mapping prodotto aggiunto con successo.');
+        return back()->with('success', __('Mapping prodotto aggiunto con successo.'));
     }
 
     public function destroyMapping(\App\Models\PlatformProductMapping $mapping)
     {
         $mapping->update(['is_active' => false]);
         
-        return back()->with('success', 'Mapping rimosso con successo.');
+        return back()->with('success', __('Mapping rimosso con successo.'));
     }
 }

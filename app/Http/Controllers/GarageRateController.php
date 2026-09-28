@@ -66,7 +66,7 @@ class GarageRateController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
-            'parking_id' => ['required', 'exists:parkings,id'],
+            'parking_id' => ['required', \Illuminate\Validation\Rule::exists('parkings', 'id')->where('id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'parking_product_id' => [
                 'required',
                 Rule::exists('parking_products', 'id')->where('parking_id', $request->integer('parking_id')),

@@ -29,15 +29,15 @@ class ParkosAdapter extends AbstractPlatformAdapter
     public function defaultSyncWindow(): array
     {
         return [
-            Carbon::now()->subHours((int) config('services.parkos.sync_lookback_hours', 72)),
+            Carbon::now()->subHours((int) $this->configurationOption('parkos', 'sync_lookback_hours', 72)),
             Carbon::now(),
         ];
     }
 
     public function fetchReservations(ParkingListing $listing, Carbon $from, Carbon $to, string $mode = 'modified'): array
     {
-        if (config('services.parkos.fixture_mode')) {
-            $fixtureFile = config('services.parkos.fixture_file', 'reservations_success.json');
+        if ($this->configurationOption('parkos', 'fixture_mode')) {
+            $fixtureFile = $this->configurationOption('parkos', 'fixture_file', 'reservations_success.json');
             $payload = $this->fixtureReader->loadFixture('parkos', $fixtureFile);
 
             if (!isset($payload['data']) || !is_array($payload['data'])) {
@@ -76,7 +76,7 @@ class ParkosAdapter extends AbstractPlatformAdapter
                 ->values()
                 ->all();
 
-            if (config('services.parkos.debug_sync', false)) {
+            if ($this->configurationOption('parkos', 'debug_sync', false)) {
                 \Illuminate\Support\Facades\Log::debug('Parkos sync records merged', [
                     'listing_id' => $listing->id,
                     'merchant_id' => $listing->external_id,
@@ -98,6 +98,7 @@ class ParkosAdapter extends AbstractPlatformAdapter
         }
 
         return collect($records)
+            ->filter(fn ($record) => ! isset($record['merchant_id']) || (string) $record['merchant_id'] === (string) $listing->external_id)
             ->filter(function ($record) use ($from, $to, $mode) {
                 if ($mode !== 'stay_period') {
                     return true;

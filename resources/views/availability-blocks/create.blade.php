@@ -13,7 +13,7 @@
 
     <div class="pm-card pm-animate" style="max-width:720px">
         <form method="POST" action="{{ route('availability-blocks.store') }}" class="pm-form">
-            @csrf
+            @csrf @parkingContext
 
             <div class="pm-form-grid-2">
                 <div class="pm-form-group">

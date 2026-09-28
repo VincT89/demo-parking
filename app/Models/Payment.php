@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Payment extends Model
 {
+    use \App\Models\Concerns\BelongsToParkingContext;
+
     protected $fillable = [
         'reservation_id',
         'provider',

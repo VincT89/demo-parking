@@ -25,6 +25,7 @@ class PayPalPaymentController extends Controller
         abort_if($reservation->status !== ReservationStatus::Pending, 404);
         abort_if($reservation->expires_at && $reservation->expires_at->isPast(), 410);
 
+        $settings = app(\App\Services\PaymentConfiguration::class)->requireProvider('paypal');
         $order = $paypal->createOrder($reservation);
 
         Payment::create([
@@ -32,7 +33,7 @@ class PayPalPaymentController extends Controller
             'provider' => 'paypal',
             'status' => PaymentStatus::Pending->value,
             'amount' => $reservation->price,
-            'currency' => config('payments.paypal.currency', 'EUR'),
+            'currency' => ($settings['paypal']['currency'] ?? 'EUR'),
             'provider_order_id' => $order['id'],
             'raw_data' => $order,
         ]);

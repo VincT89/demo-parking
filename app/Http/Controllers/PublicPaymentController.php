@@ -16,10 +16,12 @@ class PublicPaymentController extends Controller
         abort_if($reservation->status !== ReservationStatus::Pending, 404);
         abort_if($reservation->expires_at && $reservation->expires_at->isPast(), 410);
 
+        $settings = app(\App\Services\PaymentConfiguration::class)->forManagement();
         return view('booking.payment', [
             'reservation' => $reservation,
-            'stripePublicKey' => config('payments.stripe.public_key'),
-            'paypalClientId' => config('payments.paypal.client_id'),
+            'stripePublicKey' => ($settings['stripe']['public_key'] ?? null),
+            'paypalClientId' => ($settings['paypal']['client_id'] ?? null),
+            'paypalCurrency' => ($settings['paypal']['currency'] ?? 'EUR'),
         ]);
     }
 

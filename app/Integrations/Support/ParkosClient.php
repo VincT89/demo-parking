@@ -12,10 +12,13 @@ class ParkosClient
     private string $baseUrl;
     private int $timeout;
 
-    public function __construct()
+    private ?array $settings;
+
+    public function __construct(?array $settings = null)
     {
-        $this->baseUrl = rtrim(config('services.parkos.base_url') ?? '', '/');
-        $this->timeout = (int) config('services.parkos.timeout', 20);
+        $this->settings = $settings;
+        $this->baseUrl = rtrim($this->setting('base_url') ?? '', '/');
+        $this->timeout = (int) $this->setting('timeout', 20);
     }
 
     private function url(string $path): string
@@ -32,9 +35,9 @@ class ParkosClient
 
     protected function accessToken(): string
     {
-        $cacheKey = config('services.parkos.token_cache_key');
+        $cacheKey = $this->setting('token_cache_key');
 
-        return Cache::remember($cacheKey, config('services.parkos.token_cache_ttl'), function () {
+        return Cache::remember($cacheKey, $this->setting('token_cache_ttl'), function () {
             return $this->authenticate()['access_token'];
         });
     }
@@ -46,12 +49,12 @@ class ParkosClient
         $response = Http::timeout($this->timeout)
             ->acceptJson()
             ->asForm()
-            ->post($this->url(config('services.parkos.auth_path')), [
+            ->post($this->url($this->setting('auth_path')), [
                 'grant_type' => 'password',
-                'client_id' => config('services.parkos.client_id'),
-                'client_secret' => config('services.parkos.client_secret'),
-                'username' => config('services.parkos.username'),
-                'password' => config('services.parkos.password'),
+                'client_id' => $this->setting('client_id'),
+                'client_secret' => $this->setting('client_secret'),
+                'username' => $this->setting('username'),
+                'password' => $this->setting('password'),
             ]);
 
         $response->throw();
@@ -63,7 +66,7 @@ class ParkosClient
         $records = [];
         $page = 1;
         $maxPages = 100;
-        $url = $this->url(config('services.parkos.reservations_path', '/v1/reservations'));
+        $url = $this->url($this->setting('reservations_path', '/v1/reservations'));
 
         do {
             $pageParams = array_merge($params, [
@@ -127,10 +130,10 @@ class ParkosClient
     {
 
         Cache::put(
-            config('services.parkos.token_cache_key'),
+            $this->setting('token_cache_key'),
             $data['access_token'] ?? null,
             now()->addSeconds(
-                (int) config('services.parkos.token_cache_ttl', 3300)
+                (int) $this->setting('token_cache_ttl', 3300)
             )
         );
 
@@ -155,9 +158,15 @@ class ParkosClient
     private function ensureConfigured(): void
     {
         foreach (['base_url', 'client_id', 'client_secret', 'username', 'password'] as $key) {
-            if (blank(config("services.parkos.$key"))) {
+            if (blank($this->setting($key))) {
                 throw new \RuntimeException("Parkos config mancante: {$key}");
             }
         }
+    }
+    private function setting(string $key, mixed $default = null): mixed
+    {
+        return $this->settings === null
+            ? config('services.parkos.'.$key, $default)
+            : ($this->settings[$key] ?? $default);
     }
 }

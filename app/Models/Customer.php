@@ -9,6 +9,8 @@ use Illuminate\Support\Str;
 
 class Customer extends Model
 {
+    use \App\Models\Concerns\BelongsToParkingContext;
+
     protected $attributes = [
         'type' => 'person', 'country' => 'IT', 'vat_country' => 'IT', 'is_active' => true,
     ];

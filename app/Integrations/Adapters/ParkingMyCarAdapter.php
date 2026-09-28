@@ -27,7 +27,7 @@ class ParkingMyCarAdapter extends AbstractPlatformAdapter
     public function defaultSyncWindow(): array
     {
         return [
-            Carbon::now()->subHours((int) config('services.parking_my_car.sync_lookback_hours', 72)),
+            Carbon::now()->subHours((int) $this->configurationOption('parking_my_car', 'sync_lookback_hours', 72)),
             Carbon::now(),
         ];
     }
@@ -45,11 +45,11 @@ class ParkingMyCarAdapter extends AbstractPlatformAdapter
             $updatedRecords = $this->client->findBookingsByModification($from, $to);
 
             $periodFrom = $from->copy()->subDays(
-                (int) config('services.parking_my_car.operational_past_days', 1)
+                (int) $this->configurationOption('parking_my_car', 'operational_past_days', 1)
             );
 
             $periodTo = Carbon::now()->addDays(
-                (int) config('services.parking_my_car.operational_future_days', 60)
+                (int) $this->configurationOption('parking_my_car', 'operational_future_days', 60)
             );
 
             $periodRecords = $this->client->findBookingsByPeriod($periodFrom, $periodTo);
@@ -65,7 +65,7 @@ class ParkingMyCarAdapter extends AbstractPlatformAdapter
                 ->values()
                 ->all();
 
-            if (config('services.parking_my_car.debug_sync')) {
+            if ($this->configurationOption('parking_my_car', 'debug_sync')) {
                 \Illuminate\Support\Facades\Log::debug('PMC sync merged records', [
                     'listing_id' => $listing->id,
                     'parking_id' => $listing->external_id,
@@ -77,7 +77,7 @@ class ParkingMyCarAdapter extends AbstractPlatformAdapter
             }
         }
 
-        if (config('services.parking_my_car.debug_sync')) {
+        if ($this->configurationOption('parking_my_car', 'debug_sync')) {
             \Log::debug('PMC bookings_resource ids after API', [
                 'ids' => collect($records)->pluck('id')->values()->all(),
             ]);
@@ -109,7 +109,7 @@ class ParkingMyCarAdapter extends AbstractPlatformAdapter
             ->values()
             ->all();
 
-        if (config('services.parking_my_car.debug_sync')) {
+        if ($this->configurationOption('parking_my_car', 'debug_sync')) {
             \Log::debug('PMC bookings_resource ids after filters', [
                 'ids' => collect($filtered)->pluck('id')->values()->all(),
             ]);
@@ -230,7 +230,7 @@ class ParkingMyCarAdapter extends AbstractPlatformAdapter
             ?? $record['service_id']
             ?? $record['rate_id']
             ?? $record['parking_type_id']
-            ?? config('services.parking_my_car.default_product_ref', 'DEFAULT');
+            ?? $this->configurationOption('parking_my_car', 'default_product_ref', 'DEFAULT');
 
         $flightReference = collect([
             $record['departure_flight'] ?? null,

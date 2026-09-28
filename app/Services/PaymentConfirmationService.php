@@ -13,6 +13,12 @@ class PaymentConfirmationService
 {
     public function confirm(Payment $payment, int $actualPaidAmountInCents, string $actualCurrency, array $rawData = []): Reservation
     {
+        $parking = $payment->reservation->parking;
+        return app(\App\Tenancy\ParkingContext::class)->run($parking, fn () => $this->confirmForParking($payment, $actualPaidAmountInCents, $actualCurrency, $rawData));
+    }
+
+    private function confirmForParking(Payment $payment, int $actualPaidAmountInCents, string $actualCurrency, array $rawData): Reservation
+    {
         return DB::transaction(function () use ($payment, $actualPaidAmountInCents, $actualCurrency, $rawData) {
             $payment = Payment::query()
                 ->whereKey($payment->id)

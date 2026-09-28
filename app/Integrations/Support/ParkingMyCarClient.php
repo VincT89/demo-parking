@@ -12,10 +12,13 @@ class ParkingMyCarClient
     private string $baseUrl;
     private int $timeout;
 
-    public function __construct()
+    private ?array $settings;
+
+    public function __construct(?array $settings = null)
     {
-        $this->baseUrl = rtrim(config('services.parking_my_car.base_url') ?? '', '/');
-        $this->timeout = (int) config('services.parking_my_car.timeout', 20);
+        $this->settings = $settings;
+        $this->baseUrl = rtrim($this->setting('base_url') ?? '', '/');
+        $this->timeout = (int) $this->setting('timeout', 20);
     }
 
     private function url(string $path): string
@@ -32,9 +35,9 @@ class ParkingMyCarClient
 
     protected function accessToken(): string
     {
-        $cacheKey = config('services.parking_my_car.token_cache_key');
+        $cacheKey = $this->setting('token_cache_key');
 
-        return Cache::remember($cacheKey, config('services.parking_my_car.token_cache_ttl'), function () {
+        return Cache::remember($cacheKey, $this->setting('token_cache_ttl'), function () {
             return $this->authenticate()['access_token'];
         });
     }
@@ -46,12 +49,12 @@ class ParkingMyCarClient
         $response = Http::timeout($this->timeout)
             ->acceptJson()
             ->asForm()
-            ->post($this->url(config('services.parking_my_car.auth_path')), [
+            ->post($this->url($this->setting('auth_path')), [
                 'grant_type' => 'password',
-                'client_id' => config('services.parking_my_car.client_id'),
-                'client_secret' => config('services.parking_my_car.client_secret'),
-                'username' => config('services.parking_my_car.username'),
-                'password' => config('services.parking_my_car.password'),
+                'client_id' => $this->setting('client_id'),
+                'client_secret' => $this->setting('client_secret'),
+                'username' => $this->setting('username'),
+                'password' => $this->setting('password'),
             ]);
 
         $response->throw();
@@ -63,7 +66,7 @@ class ParkingMyCarClient
 
     public function refreshToken(): array
     {
-        $refreshToken = Cache::get(config('services.parking_my_car.refresh_token_cache_key'));
+        $refreshToken = Cache::get($this->setting('refresh_token_cache_key'));
 
         if (!$refreshToken) {
             return $this->authenticate();
@@ -72,10 +75,10 @@ class ParkingMyCarClient
         $response = Http::timeout($this->timeout)
             ->acceptJson()
             ->asForm()
-            ->post($this->url(config('services.parking_my_car.refresh_path')), [
+            ->post($this->url($this->setting('refresh_path')), [
                 'grant_type' => 'refresh_token',
-                'client_id' => config('services.parking_my_car.client_id'),
-                'client_secret' => config('services.parking_my_car.client_secret'),
+                'client_id' => $this->setting('client_id'),
+                'client_secret' => $this->setting('client_secret'),
                 'refresh_token' => $refreshToken,
             ]);
 
@@ -89,16 +92,16 @@ class ParkingMyCarClient
     private function storeTokens(array $data): array
     {
         Cache::put(
-            config('services.parking_my_car.refresh_token_cache_key'),
+            $this->setting('refresh_token_cache_key'),
             $data['refresh_token'] ?? null,
             now()->addDays(30)
         );
 
         Cache::put(
-            config('services.parking_my_car.token_cache_key'),
+            $this->setting('token_cache_key'),
             $data['access_token'] ?? null,
             now()->addSeconds(
-                (int) config('services.parking_my_car.token_cache_ttl', 3300)
+                (int) $this->setting('token_cache_ttl', 3300)
             )
         );
 
@@ -107,7 +110,7 @@ class ParkingMyCarClient
 
     public function getParkings(): array
     {
-        $response = $this->request()->get($this->url(config('services.parking_my_car.resources_path')));
+        $response = $this->request()->get($this->url($this->setting('resources_path')));
         $response->throw();
 
         return $response->json('parkings') ?? [];
@@ -116,7 +119,7 @@ class ParkingMyCarClient
     public function findBookingsByModification(Carbon $from, Carbon $to): array
     {
         // PMC usa start_dttm/end_dttm (con doppia t)
-        $response = $this->request()->get($this->url(config('services.parking_my_car.reservations_update_path')), [
+        $response = $this->request()->get($this->url($this->setting('reservations_update_path')), [
             'start_dttm' => $from->format('Y-m-d H:i:s'),
             'end_dttm' => $to->format('Y-m-d H:i:s'),
         ]);
@@ -134,7 +137,7 @@ class ParkingMyCarClient
     public function findBookingsByPeriod(Carbon $from, Carbon $to): array
     {
         $response = $this->request()->get(
-            $this->url(config('services.parking_my_car.reservations_path', '/pmc_rest/bookings_resource')),
+            $this->url($this->setting('reservations_path', '/pmc_rest/bookings_resource')),
             [
                 'start_dttm' => $from->format('Y-m-d H:i:s'),
                 'end_dttm' => $to->format('Y-m-d H:i:s'),
@@ -143,7 +146,7 @@ class ParkingMyCarClient
 
         $response->throw();
 
-        if (config('services.parking_my_car.debug_sync')) {
+        if ($this->setting('debug_sync')) {
             \Log::debug('PMC bookings_resource response', [
                 'from' => $from->toDateTimeString(),
                 'to' => $to->toDateTimeString(),
@@ -166,9 +169,15 @@ class ParkingMyCarClient
     private function ensureConfigured(): void
     {
         foreach (['base_url', 'client_id', 'client_secret', 'username', 'password'] as $key) {
-            if (blank(config("services.parking_my_car.$key"))) {
+            if (blank($this->setting($key))) {
                 throw new \RuntimeException("ParkingMyCar config mancante: {$key}");
             }
         }
+    }
+    private function setting(string $key, mixed $default = null): mixed
+    {
+        return $this->settings === null
+            ? config('services.parking_my_car.'.$key, $default)
+            : ($this->settings[$key] ?? $default);
     }
 }

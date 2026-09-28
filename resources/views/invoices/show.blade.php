@@ -74,7 +74,7 @@
 
                 @if(in_array($invoice->status, ['draft', 'error', 'rejected'], true))
                     <form method="POST" action="{{ route('invoices.submit', $invoice) }}">
-                        @csrf
+                        @csrf @parkingContext
                         <button class="pm-btn pm-btn-primary pm-btn-block" type="submit"
                             @if(!$settings->isSimulator()) onclick="return confirm(@js(__('Confermi l’invio del documento all’ambiente Aruba configurato?')))" @endif>
                             {{ $settings->isSimulator() ? __('Invia al simulatore') : __('Invia ad Aruba') }}
@@ -85,23 +85,23 @@
                 @if($settings->isSimulator() && in_array($invoice->status, ['processing', 'submitted'], true))
                     <p class="pm-card-help">{{ __('Scegli la risposta che il simulatore deve restituire.') }}</p>
                     <form method="POST" action="{{ route('invoices.simulate', $invoice) }}">
-                        @csrf
+                        @csrf @parkingContext
                         <input type="hidden" name="outcome" value="delivered">
                         <button class="pm-btn pm-btn-primary pm-btn-block" type="submit">{{ __('Simula consegna') }}</button>
                     </form>
                     <form method="POST" action="{{ route('invoices.simulate', $invoice) }}">
-                        @csrf
+                        @csrf @parkingContext
                         <input type="hidden" name="outcome" value="rejected">
                         <button class="pm-btn pm-btn-danger pm-btn-block" type="submit">{{ __('Simula scarto') }}</button>
                     </form>
                     <form method="POST" action="{{ route('invoices.simulate', $invoice) }}">
-                        @csrf
+                        @csrf @parkingContext
                         <input type="hidden" name="outcome" value="delivery_failed">
                         <button class="pm-btn pm-btn-secondary pm-btn-block" type="submit">{{ __('Simula mancata consegna') }}</button>
                     </form>
                 @elseif(!$settings->isSimulator() && $invoice->submitted_at && !$invoice->isFinal())
                     <form method="POST" action="{{ route('invoices.refresh', $invoice) }}">
-                        @csrf
+                        @csrf @parkingContext
                         <button class="pm-btn pm-btn-primary pm-btn-block" type="submit">{{ __('Aggiorna stato da Aruba') }}</button>
                     </form>
                 @endif

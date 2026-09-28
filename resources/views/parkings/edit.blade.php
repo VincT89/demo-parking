@@ -25,7 +25,7 @@
 
         <!-- Form 1: Dati Generali Parcheggio -->
         <form action="{{ route('parkings.update', $parking) }}" method="POST">
-            @csrf
+            @csrf @parkingContext
             @method('PATCH')
 
             <div class="pm-card" style="margin-bottom: 24px;">
@@ -73,7 +73,7 @@
 
         <!-- Form 2: Prodotti / Categorie Vendibili -->
         <form action="{{ route('parkings.products.upsert', $parking) }}" method="POST" id="config-form">
-            @csrf
+            @csrf @parkingContext
             @method('PUT')
 
             <div class="pm-card" style="margin-bottom: 24px;">
@@ -164,7 +164,7 @@
             <div id="new-allocation-form" style="display: none; background: var(--pm-bg); padding: 16px; border: 1px solid var(--pm-border); border-radius: var(--pm-radius); margin-bottom: 16px;">
                 <h4 style="margin-top: 0; margin-bottom: 12px; font-weight: 600; font-size: 14px;">{{ __('Aggiungi posti riservati') }}</h4>
                 <form action="{{ route('parkings.allocations.store', $parking->id) }}" method="POST">
-                    @csrf
+                    @csrf @parkingContext
                     <input type="hidden" name="parking_id" value="{{ $parking->id }}">
                     
                     <div class="pm-parking-allocation-grid">
@@ -249,7 +249,7 @@
                                 </td>
                                 <td data-label="{{ __('Azione') }}" style="padding: 12px 8px;">
                                     <form action="{{ route('parkings.allocations.destroy', ['parking' => $parking->id, 'allocation' => $alloc->id]) }}" method="POST" style="display:inline;" onsubmit="return confirm('{{ __('Eliminare questa allocazione?') }}');">
-                                        @csrf
+                                        @csrf @parkingContext
                                         @method('DELETE')
                                         <button type="submit" class="pm-btn pm-btn-danger pm-btn-sm" style="padding: 4px 8px; font-size: 11px;">{{ __('Elimina') }}</button>
                                     </form>

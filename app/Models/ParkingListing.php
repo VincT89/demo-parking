@@ -8,6 +8,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ParkingListing extends Model
 {
+    use \App\Models\Concerns\BelongsToParkingContext;
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $listing) {
+            $parking = Parking::findOrFail($listing->parking_id);
+            $platform = Platform::findOrFail($listing->platform_id);
+            if ($parking->management_id !== $platform->management_id) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['platform_id' => 'Il canale appartiene a un’altra gestione.']);
+            }
+        });
+    }
+
     protected $fillable = [
         'parking_id',
         'platform_id',

@@ -24,6 +24,21 @@ class CustomerBackfillService
 
     public function run(): array
     {
+        $context = app(\App\Tenancy\ParkingContext::class);
+        if (! $context->restricted) {
+            $total = ['created' => 0, 'vehicles_added' => 0, 'linked' => array_fill_keys(array_keys(self::SOURCES), 0), 'skipped' => 0, 'issues' => [], 'remaining' => 0];
+            foreach (\App\Models\Parking::with('management')->orderBy('id')->get() as $parking) {
+                $report = $context->run($parking, fn () => $this->run());
+                foreach (['created', 'vehicles_added', 'skipped', 'remaining'] as $key) {
+                    $total[$key] += $report[$key];
+                }
+                foreach (self::SOURCES as $kind => $_) {
+                    $total['linked'][$kind] += $report['linked'][$kind];
+                }
+                $total['issues'] = array_merge($total['issues'], $report['issues']);
+            }
+            return $total;
+        }
         return DB::transaction(function () {
             $this->identities = [];
             $this->customers = [];

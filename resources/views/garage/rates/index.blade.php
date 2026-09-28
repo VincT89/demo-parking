@@ -31,7 +31,7 @@
                 </div>
             </div>
             <form method="POST" action="{{ route('garage.rates.store') }}" class="pm-form">
-                @csrf
+                @csrf @parkingContext
                 <input type="hidden" name="parking_id" value="{{ $parking->id }}">
                 @include('garage.rates.partials.fields', ['rate' => null])
                 <div class="pm-form-actions"><button class="pm-btn pm-btn-primary" type="submit">{{ __('Salva tariffa') }}</button></div>
@@ -42,7 +42,7 @@
             @forelse ($rates as $rate)
                 <article class="pm-card">
                     <form method="POST" action="{{ route('garage.rates.update', $rate) }}" class="pm-form">
-                        @csrf
+                        @csrf @parkingContext
                         @method('PUT')
                         <input type="hidden" name="parking_id" value="{{ $parking->id }}">
                         <div class="pm-card-header pm-settings-card-header">
@@ -57,7 +57,7 @@
                     </form>
                     @if ($rate->is_active)
                         <form method="POST" action="{{ route('garage.rates.destroy', $rate) }}" onsubmit="return confirm(@js(__('Disattivare questa tariffa?')))" class="pm-rate-disable-form">
-                            @csrf
+                            @csrf @parkingContext
                             @method('DELETE')
                             <button class="pm-btn pm-btn-danger" type="submit">{{ __('Disattiva') }}</button>
                         </form>

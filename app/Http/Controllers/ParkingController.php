@@ -31,9 +31,22 @@ class ParkingController extends Controller
      */
     public function store(StoreParkingRequest $request)
     {
-        Parking::create($request->validated());
+        $data = $request->safe()->except(['separate_management', 'management_name']);
+        $context = app(\App\Tenancy\ParkingContext::class);
+        \Illuminate\Support\Facades\DB::transaction(function () use ($request, $data, $context) {
+            if ($request->boolean('separate_management')) {
+                $management = \App\Models\Management::create(['name' => $request->validated('management_name')]);
+                $management->users()->attach($request->user()->id, ['role' => 'admin']);
+                $context->select(null, $management);
+            }
+            $parking = Parking::create($data);
+            $context->select($parking);
+            $platform = \App\Models\Platform::firstOrCreate(['slug' => 'website'], ['name' => __('Sito Web'), 'is_active' => true]);
+            \App\Models\ParkingListing::create(['parking_id' => $parking->id, 'platform_id' => $platform->id, 'is_active' => true]);
+            $request->session()->put('active_parking_id', $parking->id);
+        });
 
-        return redirect()->route('parkings.index')->with('success', 'Parcheggio creato correttamente.');
+        return redirect()->route('parkings.index')->with('success', __('Parcheggio creato correttamente.'));
     }
 
     /**
@@ -65,10 +78,10 @@ class ParkingController extends Controller
 
         // Trigger Cache clear 
         if (auth()->check()) {
-            cache()->forget('alert_count_' . auth()->id());
+            cache()->forget('alert_count_' . auth()->id() . '_parking_' . $parking->id);
         }
 
-        return redirect()->route('parkings.edit', $parking)->with('success', 'Configurazione parcheggio aggiornata.');
+        return redirect()->route('parkings.edit', $parking)->with('success', __('Configurazione parcheggio aggiornata.'));
     }
 
     /**
@@ -80,9 +93,9 @@ class ParkingController extends Controller
         
         // Trigger Cache clear
         if (auth()->check()) {
-            cache()->forget('alert_count_' . auth()->id());
+            cache()->forget('alert_count_' . auth()->id() . '_parking_' . $parking->id);
         }
 
-        return redirect()->route('parkings.index')->with('success', 'Parcheggio disattivato con successo.');
+        return redirect()->route('parkings.index')->with('success', __('Parcheggio disattivato con successo.'));
     }
 }

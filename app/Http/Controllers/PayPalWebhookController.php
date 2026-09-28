@@ -10,12 +10,14 @@ use Illuminate\Support\Facades\Log;
 
 class PayPalWebhookController extends Controller
 {
-    public function handle(Request $request, PaymentConfirmationService $confirmation)
+    public function handle(Request $request, PaymentConfirmationService $confirmation, ?string $managementKey = null)
     {
         if (config('demo.enabled')) {
             return response()->json(['received' => true, 'demo' => true]);
         }
-
+        $configuration = app(\App\Services\PaymentConfiguration::class);
+        $management = $configuration->webhookManagement($managementKey);
+        $settings = $configuration->forManagement($management);
         // Usiamo l'approccio di validazione sicura Server-to-Server (Zero-Trust sul payload del webhook).
         $payload = $request->all();
 
@@ -42,7 +44,7 @@ class PayPalWebhookController extends Controller
             }
 
             if ($orderId) {
-                $payment = Payment::where('provider', 'paypal')
+                $payment = Payment::whereHas('reservation.parking', fn ($query) => $query->where('management_id', $management->id))->where('provider', 'paypal')
                     ->where('provider_order_id', $orderId)
                     ->first();
 
@@ -54,7 +56,8 @@ class PayPalWebhookController extends Controller
                             // SERVER-SIDE VALIDATION: ZERO TRUST
                             // Non fidarci mai degli importi nel payload del webhook che potrebbe non essere verificato
                             // Chiediamo l'assoluta verità direttamente all'API di PayPal
-                            $paypalService = app(\App\Services\PayPalService::class);
+                            $paypalService = new \App\Services\PayPalService($settings);
+                            abort_if(blank($settings['paypal']['client_id'] ?? null) || blank($settings['paypal']['client_secret'] ?? null), 503);
                             $orderData = $paypalService->getOrder($orderId);
 
                             if (($orderData['status'] ?? null) === 'COMPLETED') {

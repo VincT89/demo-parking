@@ -7,6 +7,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PlatformProductMapping extends Model
 {
+    use \App\Models\Concerns\BelongsToParkingContext;
+
+    protected static function booted(): void
+    {
+        static::saving(function (self $mapping) {
+            $product = ParkingProduct::findOrFail($mapping->parking_product_id);
+            $platform = Platform::findOrFail($mapping->platform_id);
+            if ($product->parking->management_id !== $platform->management_id) {
+                throw \Illuminate\Validation\ValidationException::withMessages(['parking_product_id' => 'Il prodotto appartiene a un’altra gestione.']);
+            }
+        });
+    }
+
     protected $fillable = [
         'platform_id',
         'parking_product_id',

@@ -21,12 +21,17 @@ class StripeWebhookController extends Controller
         Request $request,
         PaymentConfirmationService $confirmation,
         GaragePaymentService $garageConfirmation,
+        ?string $managementKey = null,
     )
     {
         if (config('demo.enabled')) {
             return response()->json(['received' => true, 'demo' => true]);
         }
 
+        $configuration = app(\App\Services\PaymentConfiguration::class);
+        $management = $configuration->webhookManagement($managementKey);
+        $settings = $configuration->forManagement($management);
+        abort_if(blank($settings['stripe']['webhook_secret'] ?? null), 503);
         $payload = $request->getContent();
         $signature = $request->header('Stripe-Signature');
 
@@ -34,12 +39,50 @@ class StripeWebhookController extends Controller
             $event = Webhook::constructEvent(
                 $payload,
                 $signature,
-                config('payments.stripe.webhook_secret')
+                $settings['stripe']['webhook_secret']
             );
         } catch (Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
 
+        // Resolve the signed event only inside the management owning this endpoint.
+        $object = $event->data->object;
+        $parking = null;
+        $paymentQuery = Payment::where('provider', 'stripe')->whereHas('reservation.parking', fn ($q) => $q->where('management_id', $management->id));
+        $subscriptionQuery = ParkingSubscription::whereHas('parking', fn ($q) => $q->where('management_id', $management->id));
+        if ($event->type === 'checkout.session.completed') {
+            if (isset($object->payment_status) && ! in_array($object->payment_status, ['paid', 'no_payment_required'], true)) {
+                return response()->json(['received' => true]);
+            }
+            if (isset($object->metadata->garage_payment_id)) {
+                $payment = GaragePayment::where('provider', 'stripe')
+                    ->whereHas('parking', fn ($q) => $q->where('management_id', $management->id))
+                    ->where('provider_session_id', $object->id)->find($object->metadata->garage_payment_id);
+                $parking = $payment?->parking;
+            } else {
+                $parking = $paymentQuery->where('provider_session_id', $object->id)->first()?->reservation?->parking;
+            }
+        } elseif ($event->type === 'payment_intent.succeeded') {
+            $payment = (clone $paymentQuery)->where('provider_payment_id', $object->id)->first();
+            if (! $payment && isset($object->metadata->payment_id)) {
+                $payment = $paymentQuery->find($object->metadata->payment_id);
+            }
+            $parking = $payment?->reservation?->parking;
+        } elseif (in_array($event->type, ['invoice.paid', 'invoice.payment_failed'], true)) {
+            $id = is_string($object->subscription ?? null) ? $object->subscription : ($object->subscription->id ?? null);
+            $parking = $id ? $subscriptionQuery->where('stripe_subscription_id', $id)->first()?->parking : null;
+        } elseif (in_array($event->type, ['customer.subscription.updated', 'customer.subscription.deleted'], true)) {
+            $parking = $subscriptionQuery->where('stripe_subscription_id', $object->id)->first()?->parking;
+        }
+        if (! $parking) {
+            return response()->json(['received' => true]);
+        }
+
+        return app(\App\Tenancy\ParkingContext::class)->run($parking, fn () => $this->process($event, $confirmation, $garageConfirmation));
+    }
+
+    private function process($event, PaymentConfirmationService $confirmation, GaragePaymentService $garageConfirmation)
+    {
         if ($event->type === 'checkout.session.completed') {
             $session = $event->data->object;
 

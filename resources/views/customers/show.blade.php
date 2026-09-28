@@ -58,7 +58,7 @@
         </section>
         @can('manage-parkings')
             <form method="POST" action="{{ route('customers.status', $customer) }}" class="pm-customer-actions">
-                @csrf @method('PATCH')
+                @csrf @parkingContext @method('PATCH')
                 <input type="hidden" name="is_active" value="{{ $customer->is_active ? '0' : '1' }}">
                 <button class="pm-btn pm-btn-secondary">{{ $customer->is_active ? __('Archivia cliente') : __('Riattiva cliente') }}</button>
                 <span class="pm-field-help">{{ __('L’archiviazione mantiene lo storico e nasconde il cliente dai nuovi inserimenti.') }}</span>

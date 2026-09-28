@@ -173,7 +173,7 @@
                                             <td class="pm-mono">{{ $reservation->passengers_count ?? 1 }}</td>
                                             <td>
                                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                                    <input type="checkbox" id="check_in_{{ $reservation->id }}" {{ $reservation->has_entered ? 'checked' : '' }} onchange="toggleMovement({{ $reservation->id }}, 'entered', this.checked)" style="width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--pm-border); cursor: pointer;">
+                                                    <input type="checkbox" id="check_in_{{ $reservation->id }}" {{ $reservation->has_entered ? 'checked' : '' }} onchange="toggleMovement({{ $reservation->id }}, 'entered', this)" style="width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--pm-border); cursor: pointer;">
                                                     <label for="check_in_{{ $reservation->id }}" style="font-size: 13px; color: var(--pm-text-muted); cursor: pointer; user-select: none; margin: 0;">
                                                         {{ __(':vehicle entrato', ['vehicle' => __($reservation->parkingProduct->name ?? 'Veicolo')]) }}
                                                     </label>
@@ -251,7 +251,7 @@
                                             <td class="pm-mono">{{ $reservation->passengers_count ?? 1 }}</td>
                                             <td>
                                                 <div style="display: flex; align-items: center; gap: 8px;">
-                                                    <input type="checkbox" id="check_out_{{ $reservation->id }}" {{ $reservation->has_exited ? 'checked' : '' }} onchange="toggleMovement({{ $reservation->id }}, 'exited', this.checked, {{ $reservation->parking?->settings?->ticket_auto_open_on_exit ? 'true' : 'false' }})" style="width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--pm-border); cursor: pointer;">
+                                                    <input type="checkbox" id="check_out_{{ $reservation->id }}" {{ $reservation->has_exited ? 'checked' : '' }} onchange="toggleMovement({{ $reservation->id }}, 'exited', this, {{ $reservation->parking?->settings?->ticket_auto_open_on_exit ? 'true' : 'false' }})" style="width: 18px; height: 18px; border-radius: 4px; border: 1px solid var(--pm-border); cursor: pointer;">
                                                     <label for="check_out_{{ $reservation->id }}" style="font-size: 13px; color: var(--pm-text-muted); cursor: pointer; user-select: none; margin: 0;">
                                                         {{ __(':vehicle uscito', ['vehicle' => __($reservation->parkingProduct->name ?? 'Veicolo')]) }}
                                                     </label>
@@ -438,48 +438,5 @@
 
     </div>
 
-    <script>
-        function toggleMovement(reservationId, type, isChecked, autoPrint = false) {
-            let printWindow = null;
 
-            if (type === 'exited' && isChecked && autoPrint) {
-                printWindow = window.open('about:blank', '_blank');
-            }
-
-            fetch(`/reservations/${reservationId}/toggle-movement`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    type: type,
-                    value: isChecked
-                })
-            }).then(async res => {
-                const data = await res.json().catch(() => ({}));
-                if (!res.ok) {
-                    throw new Error('movement-save-failed');
-                }
-
-                if (data.print_url) {
-                    if (printWindow) {
-                        printWindow.location.href = data.print_url;
-                    } else {
-                        const opened = window.open(data.print_url, '_blank');
-                        if (!opened) {
-                            alert(@js(__('Uscita salvata. Il browser ha bloccato l’apertura della stampa: usa il pulsante nel dettaglio prenotazione.')));
-                        }
-                    }
-                } else if (printWindow) {
-                    printWindow.close();
-                }
-            }).catch(err => {
-                if (printWindow) printWindow.close();
-                console.error(err);
-                alert(@js(__('Errore nel salvataggio dello stato.')));
-            });
-        }
-    </script>
 </x-app-layout>

@@ -148,7 +148,7 @@
                     <span class="pm-badge amber" style="padding: 6px 12px; font-size: 14px;">{{ __('Pagamento in attesa') }}</span>
 
                     <form method="POST" action="{{ route('reservations.mark-paid', $reservation) }}" style="margin-top: 16px;">
-                        @csrf
+                        @csrf @parkingContext
                         <button type="submit" class="pm-btn pm-btn-primary" style="background-color: var(--pm-green); border-color: var(--pm-green);"
                                 onclick="return confirm(@js(__('Confermi che il cliente ha pagato in struttura?'))) ">
                             {{ __('Segna come pagato') }}

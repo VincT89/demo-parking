@@ -98,7 +98,7 @@
 
                             <div class="pm-alert-actions">
                                 <form action="{{ route('alerts.dismiss', $alert['id']) }}" method="POST" style="margin: 0;">
-                                    @csrf
+                                    @csrf @parkingContext
                                     <button type="submit" class="pm-btn pm-btn-ghost" style="color: var(--pm-text-muted); font-size: 12px; padding: 6px 12px; height: auto;">
                                         {{ __('Ignora') }}
                                     </button>

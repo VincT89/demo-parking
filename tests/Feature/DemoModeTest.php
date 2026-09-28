@@ -42,8 +42,9 @@ test('demo reset creates a rolling month of synthetic reservations without HTTP 
     $this->actingAs(User::query()->where('email', 'demo@sodanoconsulting.it')->firstOrFail())
         ->get(route('customers.index'))->assertOk()->assertDontSee('Showing')->assertSee('risultati');
     expect(Hash::check('password', User::query()->where('email', 'demo@sodanoconsulting.it')->value('password')))->toBeTrue();
-    expect(ParkingProduct::query()->where('is_active', true)->sum('capacity'))
-        ->toBe(Parking::query()->value('total_spots'));
+    foreach (Parking::query()->get() as $parking) {
+        expect($parking->products()->where('is_active', true)->sum('capacity'))->toBe($parking->total_spots);
+    }
 
     Http::assertNothingSent();
 });
@@ -54,6 +55,9 @@ test('demo login is minimal and exposes compact language controls', function () 
     $this->get('/login')
         ->assertOk()
         ->assertSee('demo@sodanoconsulting.it')
+        ->assertSee('socio@sodanoconsulting.it')
+        ->assertSee('Accesso A+B')
+        ->assertSee('Accesso solo B')
         ->assertSee('>password<', false)
         ->assertSee('aria-label="Italiano (IT)"', false)
         ->assertSee('aria-label="English (EN)"', false)
@@ -67,9 +71,9 @@ test('demo login is minimal and exposes compact language controls', function () 
 test('demo blocks real payment endpoints and handles webhooks locally', function () {
     config()->set('demo.enabled', true);
 
-    $this->post('/booking/DEMO-TEST/stripe/checkout')->assertForbidden();
-    $this->post('/booking/DEMO-TEST/paypal/order')->assertForbidden();
-    $this->post('/booking/DEMO-TEST/paypal/capture')->assertForbidden();
+    $this->post('/booking/DEMO-TEST/stripe/checkout')->assertNotFound();
+    $this->post('/booking/DEMO-TEST/paypal/order')->assertNotFound();
+    $this->post('/booking/DEMO-TEST/paypal/capture')->assertNotFound();
 
     $this->postJson('/webhooks/stripe')->assertOk()->assertJson(['received' => true, 'demo' => true]);
     $this->postJson('/webhooks/paypal')->assertOk()->assertJson(['received' => true, 'demo' => true]);
@@ -92,3 +96,32 @@ test('unsupported configured locale falls back to the first supported locale', f
         ->assertHeader('Content-Language', 'it')
         ->assertSee('fill="#009246"', false);
 });
+
+
+test('demo account labels follow the selected login language', function (string $locale, string $sharedLabel, string $restrictedLabel) {
+    config()->set('demo.enabled', true);
+
+    $this->withSession(['locale' => $locale])->get('/login')
+        ->assertOk()
+        ->assertSee($sharedLabel)
+        ->assertSee($restrictedLabel)
+        ->assertSee('demo@sodanoconsulting.it')
+        ->assertSee('socio@sodanoconsulting.it')
+        ->assertSee('id="demo-access-ab"', false)
+        ->assertSee('id="demo-access-b"', false);
+})->with([
+    'Italian' => ['it', 'Accesso A+B', 'Accesso solo B'],
+    'English' => ['en_GB', 'A+B access', 'B-only access'],
+    'Dutch' => ['nl', 'Toegang tot A+B', 'Alleen toegang tot B'],
+]);
+
+test('demo credentials are absent from normal login in every language', function (string $locale) {
+    config()->set('demo.enabled', false);
+
+    $this->withSession(['locale' => $locale])->get('/login')
+        ->assertOk()
+        ->assertDontSee('pm-demo-accounts', false)
+        ->assertDontSee('pm-demo-credentials', false)
+        ->assertDontSee('demo@sodanoconsulting.it')
+        ->assertDontSee('socio@sodanoconsulting.it');
+})->with(['it', 'en_GB', 'nl']);

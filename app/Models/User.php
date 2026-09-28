@@ -33,11 +33,26 @@ class User extends Authenticatable
 
     public function isAdmin(): bool
     {
-        return $this->role === \App\Enums\UserRole::Admin;
+        return $this->currentRole() === \App\Enums\UserRole::Admin;
     }
 
     public function isStaff(): bool
     {
-        return $this->role === \App\Enums\UserRole::Staff;
+        return $this->currentRole() === \App\Enums\UserRole::Staff;
+    }
+
+    public function managements()
+    {
+        return $this->belongsToMany(Management::class)->withPivot('role')->withTimestamps();
+    }
+
+    public function currentRole(): ?\App\Enums\UserRole
+    {
+        $context = app(\App\Tenancy\ParkingContext::class);
+        if (! $context->restricted || ! $context->management) {
+            return null;
+        }
+        $role = $this->managements()->whereKey($context->management->id)->first()?->pivot->role;
+        return $role ? \App\Enums\UserRole::tryFrom($role) : null;
     }
 }

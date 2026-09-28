@@ -13,7 +13,7 @@
 
     <div class="pm-card pm-animate" style="max-width:720px">
         <form method="POST" action="{{ route('platforms.update', $platform) }}" class="pm-form">
-            @csrf
+            @csrf @parkingContext
             @method('PUT')
 
             <div class="pm-form-grid-2">
@@ -58,6 +58,7 @@
         </form>
     </div>
 
+    @include('platforms.connection')
     {{-- Sezione collegamento parcheggio --}}
     <div class="pm-card pm-animate" style="max-width:720px;margin-top:24px">
         <div style="font-size:16px;font-weight:600;margin-bottom:16px;border-bottom:1px solid var(--pm-border);padding-bottom:12px;color:var(--pm-text);">
@@ -76,7 +77,7 @@
 
         @if($parkings->count() > 0)
             <form method="POST" action="{{ route('platforms.attach', $platform) }}" class="pm-form">
-                @csrf
+                @csrf @parkingContext
                 
                 <div class="pm-form-grid-2" style="align-items:end;">
                     <div class="pm-form-group" style="margin:0;">
@@ -131,7 +132,7 @@
                                     </td>
                                     <td class="px-4 py-2 text-sm text-right">
                                         <form method="POST" action="{{ route('platforms.mappings.destroy', $mapping) }}" onsubmit="return confirm('{{ __('Eliminare questo mapping?') }}');">
-                                            @csrf
+                                            @csrf @parkingContext
                                             @method('DELETE')
                                             <button type="submit" class="text-red-600 hover:text-red-900">{{ __('Elimina') }}</button>
                                         </form>
@@ -150,7 +151,7 @@
             {{ __('Aggiungi una nuova mappatura') }}
         </div>
         <form method="POST" action="{{ route('platforms.mappings.store', $platform) }}" class="pm-form">
-            @csrf
+            @csrf @parkingContext
             
             <div class="pm-form-grid-2" style="align-items:end;">
                 <div class="pm-form-group" style="margin:0;">

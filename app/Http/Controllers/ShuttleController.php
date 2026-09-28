@@ -24,7 +24,7 @@ class ShuttleController extends Controller
     public function index(Request $request)
     {
         $validated = $request->validate([
-            'parking_id' => ['nullable', 'exists:parkings,id'],
+            'parking_id' => ['nullable', \Illuminate\Validation\Rule::exists('parkings', 'id')->where('id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'date' => ['nullable', 'date_format:Y-m-d'],
             'direction' => ['nullable', Rule::enum(ShuttleDirection::class)],
             'status' => ['nullable', Rule::enum(ShuttleTripStatus::class)],
@@ -120,7 +120,7 @@ class ShuttleController extends Controller
     public function generate(Request $request)
     {
         $validated = $request->validate([
-            'parking_id' => ['required', 'exists:parkings,id'],
+            'parking_id' => ['required', \Illuminate\Validation\Rule::exists('parkings', 'id')->where('id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'date' => ['required', 'date_format:Y-m-d'],
         ]);
 
@@ -164,7 +164,7 @@ class ShuttleController extends Controller
     {
         $validated = $request->validate([
             'scheduled_at' => ['required', 'date'],
-            'shuttle_vehicle_id' => ['nullable', 'exists:shuttle_vehicles,id'],
+            'shuttle_vehicle_id' => ['nullable', \Illuminate\Validation\Rule::exists('shuttle_vehicles', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'capacity' => ['required', 'integer', 'min:1', 'max:100'],
             'status' => ['required', Rule::enum(ShuttleTripStatus::class)],
             'notes' => ['nullable', 'string', 'max:2000'],
@@ -203,7 +203,7 @@ class ShuttleController extends Controller
     public function assign(Request $request, ShuttleTrip $trip)
     {
         $validated = $request->validate([
-            'reservation_id' => ['required', 'exists:reservations,id'],
+            'reservation_id' => ['required', \Illuminate\Validation\Rule::exists('reservations', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'passengers' => ['required', 'integer', 'min:1', 'max:99'],
         ]);
 
@@ -230,10 +230,10 @@ class ShuttleController extends Controller
     private function tripData(Request $request): array
     {
         return $request->validate([
-            'parking_id' => ['required', 'exists:parkings,id'],
+            'parking_id' => ['required', \Illuminate\Validation\Rule::exists('parkings', 'id')->where('id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'direction' => ['required', Rule::enum(ShuttleDirection::class)],
             'scheduled_at' => ['required', 'date'],
-            'shuttle_vehicle_id' => ['nullable', 'exists:shuttle_vehicles,id'],
+            'shuttle_vehicle_id' => ['nullable', \Illuminate\Validation\Rule::exists('shuttle_vehicles', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'capacity' => ['required', 'integer', 'min:1', 'max:100'],
             'status' => ['required', Rule::enum(ShuttleTripStatus::class)],
             'notes' => ['nullable', 'string', 'max:2000'],

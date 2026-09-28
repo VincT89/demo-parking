@@ -46,7 +46,7 @@
                                     
                                     @if ($parking->is_active)
                                         <form method="POST" action="{{ route('parkings.destroy', $parking) }}" onsubmit="return confirm('{{ __('Disattivare questo parcheggio?') }}');">
-                                            @csrf
+                                            @csrf @parkingContext
                                             @method('DELETE')
                                             <button type="submit" class="pm-btn pm-btn-danger pm-btn-sm">
                                                 {{ __('Disattiva') }}

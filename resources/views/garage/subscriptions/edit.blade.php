@@ -13,7 +13,7 @@
         <div class="pm-notice pm-notice-info">{{ __('La categoria e il prezzo originario non cambiano: così capacità e storico economico restano coerenti.') }}</div>
         <div class="pm-card">
             <form method="POST" action="{{ route('garage.subscriptions.update', $subscription) }}" class="pm-form">
-                @csrf
+                @csrf @parkingContext
                 @method('PUT')
                 <x-customer-picker :record="$subscription" />
                 <div class="pm-form-grid-2">

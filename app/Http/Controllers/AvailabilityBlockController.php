@@ -38,8 +38,8 @@ class AvailabilityBlockController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'parking_id'         => ['required', 'exists:parkings,id'],
-            'parking_listing_id' => ['nullable', 'exists:parking_listings,id'],
+            'parking_id'         => ['required', \Illuminate\Validation\Rule::exists('parkings', 'id')->where('id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
+            'parking_listing_id' => ['nullable', \Illuminate\Validation\Rule::exists('parking_listings', 'id')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking?->id ?? 0)],
             'type'               => ['required', 'string'],
             'starts_at'          => ['required', 'date', 'before:ends_at'],
             'ends_at'            => ['required', 'date', 'after:starts_at'],
@@ -57,6 +57,9 @@ class AvailabilityBlockController extends Controller
             abort(422, 'I blocchi globali non sono ammessi per i parcheggi in modalità Per Product.');
         }
 
+        if ($validated['parking_listing_id']) {
+            abort_unless(ParkingListing::findOrFail($validated['parking_listing_id'])->parking_id === $parking->id, 422);
+        }
         $validated['created_by'] = auth()->id();
 
         AvailabilityBlock::create($validated);

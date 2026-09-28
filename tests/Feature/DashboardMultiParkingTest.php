@@ -42,17 +42,17 @@ class DashboardMultiParkingTest extends TestCase
         \App\Models\ParkingProduct::create(['parking_id' => $this->parkingB->id, 'name' => 'ProdB', 'code' => 'pb', 'capacity' => 50, 'price' => 10, 'is_active' => true]);
     }
 
-    public function test_dashboard_aggregates_total_spots_for_all_active_parkings()
+    public function test_dashboard_counts_only_the_selected_parking()
     {
         $response = $this->actingAs($this->admin)->get(route('dashboard'));
         
         $response->assertOk();
         
-        // Asserting physical total is 150 (100 + 50)
-        $response->assertViewHas('physicalTotal', 150);
+        // Only the selected parking contributes to totals.
+        $response->assertViewHas('physicalTotal', 100);
     }
 
-    public function test_dashboard_aggregates_reservations_for_all_active_parkings()
+    public function test_dashboard_counts_reservations_only_for_the_selected_parking()
     {
         $platform = Platform::create(['name' => 'Test', 'slug' => 'test', 'is_active' => true]);
         
@@ -88,17 +88,17 @@ class DashboardMultiParkingTest extends TestCase
         
         $response->assertOk();
         
-        // Asserting physical occupied is 15 (5 + 10)
-        $response->assertViewHas('physicalOccupied', 15);
+        // Reservations in the other parking are excluded.
+        $response->assertViewHas('physicalOccupied', 5);
         
-        // Stats should reflect both
+        // Stats describe the selected parking.
         $stats = $response->viewData('stats');
-        $this->assertEquals(2, $stats['today_count']);
+        $this->assertEquals(1, $stats['today_count']);
     }
 
     public function test_calendar_filters_by_parking_id()
     {
-        $response = $this->actingAs($this->admin)->get(route('calendar', ['parking_id' => $this->parkingB->id]));
+        $response = $this->actingAs($this->admin)->withSession(['active_parking_id' => $this->parkingB->id])->get(route('calendar', ['parking_id' => $this->parkingB->id]));
         
         $response->assertOk();
         
@@ -110,7 +110,7 @@ class DashboardMultiParkingTest extends TestCase
 
     public function test_calendar_falls_back_to_first_active_parking_if_no_id_provided()
     {
-        $response = $this->actingAs($this->admin)->get(route('calendar'));
+        $response = $this->actingAs($this->admin)->withSession(['active_parking_id' => $this->parkingA->id])->get(route('calendar'));
         
         $response->assertOk();
         
@@ -121,7 +121,7 @@ class DashboardMultiParkingTest extends TestCase
 
     public function test_calendar_data_filters_by_parking_id()
     {
-        $response = $this->actingAs($this->admin)->get(route('calendar.data', ['parking_id' => $this->parkingB->id, 'month' => Carbon::now()->month, 'year' => Carbon::now()->year]));
+        $response = $this->actingAs($this->admin)->withSession(['active_parking_id' => $this->parkingB->id])->get(route('calendar.data', ['parking_id' => $this->parkingB->id, 'month' => Carbon::now()->month, 'year' => Carbon::now()->year]));
         
         $response->assertOk();
         // Just checking it resolves correctly without error. The JSON structure will be empty if no reservations exist.

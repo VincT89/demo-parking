@@ -27,23 +27,37 @@ Route::get('/', function () {
     return redirect()->route('dashboard');
 });
 
-// Public Booking Form (Laravel)
+// Public links resolve their own management; no session-selected fallback.
+Route::middleware(['booking.context', 'throttle:120,1'])->group(function () {
 Route::get('/booking', [\App\Http\Controllers\PublicBookingController::class, 'showForm'])->name('public.booking.form');
 Route::post('/booking/check-availability', [\App\Http\Controllers\PublicBookingController::class, 'checkAvailability'])->name('public.booking.check');
 Route::post('/booking/store', [\App\Http\Controllers\PublicBookingController::class, 'store'])->name('public.booking.store');
 Route::get('/booking/success/{uuid}', [\App\Http\Controllers\PublicBookingController::class, 'success'])->name('public.booking.success');
-Route::get('/subscription-payment/{uuid}/result', [\App\Http\Controllers\SubscriptionStripeController::class, 'publicResult'])
-    ->name('public.subscription-payment.result');
 
 Route::get('/booking/{externalId}/payment', [\App\Http\Controllers\PublicPaymentController::class, 'show'])->name('public.booking.payment');
 Route::post('/booking/{externalId}/stripe/checkout', [\App\Http\Controllers\StripePaymentController::class, 'checkout'])->name('public.booking.stripe.checkout');
 Route::post('/booking/{externalId}/paypal/order', [\App\Http\Controllers\PayPalPaymentController::class, 'createOrder'])->name('public.booking.paypal.order');
 Route::post('/booking/{externalId}/paypal/capture', [\App\Http\Controllers\PayPalPaymentController::class, 'capture'])->name('public.booking.paypal.capture');
 Route::post('/booking/{externalId}/onsite/confirm', [\App\Http\Controllers\PublicPaymentController::class, 'confirmOnsite'])->name('public.booking.onsite.confirm');
+});
+Route::get('/subscription-payment/{uuid}/result', [\App\Http\Controllers\SubscriptionStripeController::class, 'publicResult'])
+    ->middleware(['subscription.context', 'throttle:120,1'])->name('public.subscription-payment.result');
+
+Route::post('/webhooks/{managementKey}/stripe', [\App\Http\Controllers\StripeWebhookController::class, 'handle'])->name('management.webhooks.stripe');
+Route::post('/webhooks/{managementKey}/paypal', [\App\Http\Controllers\PayPalWebhookController::class, 'handle'])->name('management.webhooks.paypal');
 Route::post('/webhooks/stripe', [\App\Http\Controllers\StripeWebhookController::class, 'handle'])->name('webhooks.stripe');
 Route::post('/webhooks/paypal', [\App\Http\Controllers\PayPalWebhookController::class, 'handle'])->name('webhooks.paypal');
 
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::post('/parking/switch', \App\Http\Controllers\ParkingSwitchController::class)->middleware('auth')->name('parking.switch');
+
+Route::middleware(['auth', 'verified', 'parking.context'])->group(function () {
+    Route::middleware('can:manage-parkings')->group(function () {
+        Route::get('/management/users', [\App\Http\Controllers\ManagementUserController::class, 'index'])->name('management.users.index');
+        Route::post('/management/users', [\App\Http\Controllers\ManagementUserController::class, 'store'])->name('management.users.store');
+        Route::put('/management/users/{userId}', [\App\Http\Controllers\ManagementUserController::class, 'update'])->name('management.users.update');
+        Route::delete('/management/users/{userId}', [\App\Http\Controllers\ManagementUserController::class, 'destroy'])->name('management.users.destroy');
+        Route::get('/management/activity', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('management.activity');
+    });
 
     // Dashboard
     Route::get('/customers/lookup', [\App\Http\Controllers\CustomerController::class, 'lookup'])->name('customers.lookup');
@@ -131,6 +145,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Piattaforme — solo admin
     Route::middleware('can:manage-platforms')->group(function () {
+        Route::put('platforms/{platform}/connection', [\App\Http\Controllers\PlatformConnectionController::class, 'update'])->name('platforms.connection');
+        Route::put('platforms/{platform}/listings/{listing}', [\App\Http\Controllers\PlatformConnectionController::class, 'updateListing'])->name('platforms.listing.update');
         Route::resource('platforms', PlatformController::class)
             ->except(['show']);
         Route::post('platforms/{platform}/attach', [PlatformController::class, 'attachToParking'])

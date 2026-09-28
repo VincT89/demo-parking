@@ -30,7 +30,7 @@ class VologioAdapter extends AbstractPlatformAdapter
     public function defaultSyncWindow(): array
     {
         return [
-            Carbon::now()->subHours((int) config('services.vologio.sync_lookback_hours', 72)),
+            Carbon::now()->subHours((int) $this->configurationOption('vologio', 'sync_lookback_hours', 72)),
             Carbon::now(),
         ];
     }

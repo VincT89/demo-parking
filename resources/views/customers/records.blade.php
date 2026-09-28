@@ -30,7 +30,7 @@
                                     <a href="{{ route($detailRoute, $record) }}" class="pm-btn pm-btn-secondary pm-btn-sm" target="_blank" rel="noopener">{{ __('Apri') }}</a>
                                     @if($customer->is_active)
                                         <form method="POST" action="{{ route('customers.records.link', $customer) }}">
-                                            @csrf
+                                            @csrf @parkingContext
                                             <input type="hidden" name="kind" value="{{ $kind }}"><input type="hidden" name="record_id" value="{{ $record->id }}">
                                             <button class="pm-btn pm-btn-primary pm-btn-sm">{{ __('Collega') }}</button>
                                         </form>

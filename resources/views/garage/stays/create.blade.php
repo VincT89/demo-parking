@@ -13,7 +13,7 @@
         <div class="pm-notice pm-notice-info">{{ __('L’uscita prevista è necessaria per proteggere la disponibilità delle prenotazioni future.') }}</div>
         <div class="pm-card">
             <form method="POST" action="{{ route('garage.stays.store') }}" class="pm-form" id="stay-form">
-                @csrf
+                @csrf @parkingContext
                 <div data-walk-in><x-customer-picker /></div>
                 <div class="pm-form-grid-2">
                     <div class="pm-form-group pm-form-span-2"><label for="stay_mode" class="pm-label pm-label-required">{{ __('Tipo ingresso') }}</label><select id="stay_mode" class="pm-select"><option value="walk_in">{{ __('Cliente giornaliero') }}</option><option value="subscription">{{ __('Cliente abbonato') }}</option></select></div>

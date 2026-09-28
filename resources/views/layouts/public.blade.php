@@ -21,7 +21,7 @@
             <x-brand-logo variant="sidebar" />
             <div class="pm-public-topbar-divider"></div>
             <div class="pm-public-topbar-title">
-                @yield('topbar_title', __('Prenotazione parcheggio'))
+                @yield('topbar_title', $bookingParking?->name ?? __('Prenotazione parcheggio'))
             </div>
             <div class="pm-public-topbar-language"><x-locale-switcher /></div>
         </div>

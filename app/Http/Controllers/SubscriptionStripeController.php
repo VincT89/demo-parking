@@ -39,7 +39,8 @@ class SubscriptionStripeController extends Controller
             return redirect()->route('garage.stripe.simulation', $payment);
         }
 
-        Stripe::setApiKey(config('payments.stripe.secret_key'));
+        $settings = app(\App\Services\PaymentConfiguration::class)->requireProvider('stripe');
+        Stripe::setApiKey($settings['stripe']['secret_key']);
 
         $session = Session::create([
             'mode' => 'subscription',

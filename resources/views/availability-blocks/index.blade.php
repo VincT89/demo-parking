@@ -52,7 +52,7 @@
                                 <form method="POST"
                                       action="{{ route('availability-blocks.destroy', $block) }}"
                                       onsubmit="return confirm(@js(__('Eliminare il blocco?'))) ">
-                                    @csrf
+                                    @csrf @parkingContext
                                     @method('DELETE')
                                     <button type="submit" class="pm-btn pm-btn-danger pm-btn-sm">
                                         {{ __('Elimina') }}

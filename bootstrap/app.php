@@ -12,6 +12,19 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'parking.context' => \App\Http\Middleware\ResolveParkingContext::class,
+            'booking.context' => \App\Http\Middleware\ResolvePublicBookingContext::class,
+            'subscription.context' => \App\Http\Middleware\ResolvePublicSubscriptionContext::class,
+        ]);
+        $middleware->prependToPriorityList(
+            \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\ResolveParkingContext::class
+        );
+        $middleware->prependToPriorityList(
+            \App\Http\Middleware\ResolveParkingContext::class,
+            \App\Http\Middleware\SetLocale::class
+        );
         $middleware->web(append: [
             \App\Http\Middleware\SetLocale::class,
         ]);
@@ -19,8 +32,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->validateCsrfTokens(except: [
             'webhooks/stripe',
             'webhooks/paypal',
+            'webhooks/*/stripe',
+            'webhooks/*/paypal',
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->dontFlash(['credentials', 'payment_settings', 'aruba_password', 'aruba_client_secret']);
     })->create();

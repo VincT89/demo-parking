@@ -68,6 +68,14 @@ class SyncListingJob implements ShouldQueue, ShouldBeUnique
      */
     public function handle(SyncListingAction $action): void
     {
+        $parking = \App\Models\Parking::withoutGlobalScopes()->findOrFail($this->listing->parking_id);
+        app(\App\Tenancy\ParkingContext::class)->run($parking, fn () => $this->handleForParking($action));
+    }
+
+    private function handleForParking(SyncListingAction $action): void
+    {
+        // Reload after selecting the job's context; serialized relations may be stale.
+        $this->listing->unsetRelation('platform');
         $this->listing->loadMissing('platform');
 
         Log::info('SyncListingJob started', [

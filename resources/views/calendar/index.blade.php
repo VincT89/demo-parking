@@ -19,6 +19,7 @@
             </a>
         </div>
     </x-slot>
+    <div id="calendar-error" class="pm-alert pm-alert-error" role="alert" hidden><span>{{ __('Impossibile caricare il calendario.') }}</span> <button type="button" class="pm-btn pm-btn-secondary" onclick="loadData()">{{ __('Riprova') }}</button></div>
 
     <div style="display:flex;gap:8px;margin-bottom:24px" class="pm-animate calendar-actions">
         <a href="{{ route('calendar', ['parking_id' => $parking->id ?? '']) }}" class="pm-btn pm-btn-primary">
@@ -110,7 +111,7 @@ const LABEL = {
 // Genera snippet di configurazione injectati da Blade
 const PRODUCTS = {};
 @foreach($products as $prod)
-PRODUCTS['{{ $prod->code }}'] = {
+PRODUCTS[@js($prod->code)] = {
     name: @js(__($prod->name)),
     capacity: {{ $prod->capacity }},
 };
@@ -124,6 +125,10 @@ const PRODUCT_COLORS = {
     'truck_covered':     '#8b5cf6', // violet
     'camper_open':       '#ec4899', // pink
 };
+
+function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
+}
 
 function getColor(code) {
     return PRODUCT_COLORS[code] || '#64748b'; // slate as fallback
@@ -177,16 +182,28 @@ function switchTab(tab) {
     if (data) render();
 }
 
+let calendarRequest = 0;
 async function loadData() {
+    const request = ++calendarRequest;
+    const month = currentMonth, year = currentYear;
     document.getElementById('calendar-subtitle').textContent = LABEL.loading;
-    const res = await fetch(`{{ route('calendar.data') }}?month=${currentMonth}&year=${currentYear}&parking_id={{ $parking->id }}`);
-    data = await res.json();
-    document.getElementById('calendar-subtitle').textContent =
-        MONTHS[currentMonth - 1] + ' ' + currentYear;
-
-    timelineStartDay = null;
-    currentDailyDay  = null;
-    render();
+    const errorBox = document.getElementById('calendar-error');
+    errorBox.hidden = true;
+    try {
+        const res = await fetch(@js(route('calendar.data')) + '?month=' + month + '&year=' + year + '&parking_id=' + @js($parking->id));
+        if (!res.ok) throw new Error('calendar-request-failed');
+        const result = await res.json();
+        if (request !== calendarRequest) return;
+        data = result;
+        document.getElementById('calendar-subtitle').textContent = MONTHS[month - 1] + ' ' + year;
+        timelineStartDay = null;
+        currentDailyDay = null;
+        render();
+    } catch {
+        if (request !== calendarRequest) return;
+        document.getElementById('calendar-subtitle').textContent = @js(__('Impossibile caricare il calendario.'));
+        errorBox.hidden = false;
+    }
 }
 
 function render() {
@@ -310,7 +327,7 @@ function renderDaily() {
             <div style="margin-bottom: 32px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; background:rgba(255,255,255,0.02); padding:12px 16px; border-radius:var(--pm-radius-sm); border-left:4px solid ${color};">
                     <div style="display:flex; align-items:center; gap:8px;">
-                        <div style="font-size:18px; font-weight:600; color:var(--pm-text);">${p.name}</div>
+                        <div style="font-size:18px; font-weight:600; color:var(--pm-text);">${escapeHtml(p.name)}</div>
                     </div>
                     <div style="font-size:14px; font-family:var(--pm-mono); color:var(--pm-text-muted);">
                         ${LABEL.occupied}: <span style="color:${occupancyColor(p.occupied, p.capacity)}; font-weight:600">${p.occupied} / ${p.capacity}</span>
@@ -324,26 +341,26 @@ function renderDaily() {
                 const timeB = new Date(b.starts_at + 'T' + b.starts_at_time + ':00').getTime();
                 return timeA - timeB;
             });
-            html += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">`;
+            html += `<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 16px;">`;
             p.reservations.forEach(r => {
                 const plateHtml = r.license_plate 
-                    ? `<div style="font-family:var(--pm-mono); font-size:13px; font-weight:600; color:var(--pm-accent); background:rgba(59,130,246,0.1); padding:4px 8px; border-radius:4px; flex-shrink:0;">${r.license_plate}</div>`
+                    ? `<div style="font-family:var(--pm-mono); font-size:13px; font-weight:600; color:var(--pm-accent); background:rgba(59,130,246,0.1); padding:4px 8px; border-radius:4px; flex-shrink:0;">${escapeHtml(r.license_plate)}</div>`
                     : '';
                 const flightHtml = r.flight_reference 
-                    ? `<span style="font-family:var(--pm-mono); font-size:13px; font-weight:600; color:var(--pm-accent); background:rgba(59,130,246,0.1); padding:4px 8px; border-radius:4px; flex-shrink:0; margin-left: 4px;">${r.flight_reference}</span>`
+                    ? `<span style="font-family:var(--pm-mono); font-size:13px; font-weight:600; color:var(--pm-accent); background:rgba(59,130,246,0.1); padding:4px 8px; border-radius:4px; flex-shrink:0; margin-left: 4px;">${escapeHtml(r.flight_reference)}</span>`
                     : '';
 
                 html += `
                     <div style="background:var(--pm-bg); border:1px solid var(--pm-border); padding:16px; border-radius:var(--pm-radius);">
                         <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
-                            <div style="font-weight:600; font-size:15px; color:var(--pm-text); line-height:1.2;">${r.customer_name}</div>
+                            <div style="font-weight:600; font-size:15px; color:var(--pm-text); line-height:1.2;">${escapeHtml(r.customer_name)}</div>
                             <div style="display:flex;">
                                 ${plateHtml}
                                 ${flightHtml}
                             </div>
                         </div>
                         <div style="display:flex; align-items:center; gap:6px; margin-bottom: 12px; font-size:11px; color:var(--pm-text-muted);">
-                            ${LABEL.channel}: <span style="color:var(--pm-text);">${r.platform}</span>
+                            ${LABEL.channel}: <span style="color:var(--pm-text);">${escapeHtml(r.platform)}</span>
                         </div>
                         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
                             <div>
@@ -360,7 +377,7 @@ function renderDaily() {
             });
             html += `</div>`;
         } else {
-            html += `<div style="padding: 16px; text-align:center; font-size:13px; color:var(--pm-text-dim); border: 1px dashed var(--pm-border); border-radius:var(--pm-radius);">${LABEL.noStay.replace(':product', p.name)}</div>`;
+            html += `<div style="padding: 16px; text-align:center; font-size:13px; color:var(--pm-text-dim); border: 1px dashed var(--pm-border); border-radius:var(--pm-radius);">${escapeHtml(LABEL.noStay.replace(':product', p.name))}</div>`;
         }
         
         html += `</div>`;
@@ -414,7 +431,7 @@ function renderTimeline() {
         html += `<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;">
              <div style="display:flex;align-items:center;gap:6px;">
                  <div style="width:8px;height:8px;border-radius:50%;background:${color};"></div>
-                 <div style="font-size:13px;font-weight:500;color:var(--pm-text);text-align:center;">${prod.name}</div>
+                 <div style="font-size:13px;font-weight:500;color:var(--pm-text);text-align:center;">${escapeHtml(prod.name)}</div>
              </div>
              <div style="font-size:11px;font-family:var(--pm-mono);color:var(--pm-text-muted);margin-top:4px;">
                  ${LABEL.capacity}: ${prod.capacity}
@@ -473,7 +490,7 @@ function renderTimeline() {
 
             html += `<div
                 data-date="${dateStr}"
-                data-product="${prod.name}"
+                data-product="${escapeHtml(prod.name)}"
                 data-occupied="${pOcc.occupied}"
                 data-capacity="${pOcc.capacity}"
                 data-free="${pOcc.free}"
@@ -580,7 +597,7 @@ function renderMonthly() {
             data-occupied="${totalOccupied}"
             data-capacity="${physicalCapacity}"
             data-free="${totalFree}"
-            onmouseenter="showTooltipDay(event,this,${JSON.stringify(occ).replace(/"/g, '&quot;')})"
+            data-occupancy="${encodeURIComponent(JSON.stringify(occ))}" onmouseenter="showTooltipDay(event,this,JSON.parse(decodeURIComponent(this.dataset.occupancy)))"
             onmouseleave="hideTooltip()"
             style="
                 min-height:90px;
@@ -614,7 +631,7 @@ function renderMonthly() {
                 html += `<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">
                     <div style="width:6px;height:6px;border-radius:50%;background:${color};flex-shrink:0"></div>
                     <div style="font-size:10px;font-family:var(--pm-mono);color:var(--pm-text-muted);text-overflow:ellipsis;overflow:hidden;white-space:nowrap;">
-                        ${p.name.split(' ')[0]}: ${p.occupied}
+                        ${escapeHtml(p.name.split(' ')[0])}: ${p.occupied}
                     </div>
                 </div>`;
             });
@@ -647,7 +664,7 @@ function showTooltipCell(e, el) {
         Object.values(breakdown).forEach(plat => {
             breakdownHtml += `
                 <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
-                    <div style="font-size:12px;color:var(--pm-text-muted)">${plat.name}</div>
+                    <div style="font-size:12px;color:var(--pm-text-muted)">${escapeHtml(plat.name)}</div>
                     <div style="font-family:var(--pm-mono);font-size:12px;color:var(--pm-text);font-weight:500">${plat.count}</div>
                 </div>
             `;
@@ -657,7 +674,7 @@ function showTooltipCell(e, el) {
     
     t.innerHTML = `
         <div style="font-weight:500;color:var(--pm-text);margin-bottom:8px">
-            ${el.dataset.product} <span style="color:var(--pm-text-muted);font-weight:normal;font-size:11px;margin-left:4px">${formatDateIT(el.dataset.date)}</span>
+            ${escapeHtml(el.dataset.product)} <span style="color:var(--pm-text-muted);font-weight:normal;font-size:11px;margin-left:4px">${formatDateIT(el.dataset.date)}</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:center;">
             <div>
@@ -683,7 +700,7 @@ function showTooltipDay(e, el, occ) {
         // Costruzione mini-breakdown per il tooltip mensile
         let breakdownStr = '';
         if (p.occupied > 0 && Object.keys(p.platforms).length > 0) {
-            const arr = Object.values(p.platforms).map(pl => `${pl.name}: ${pl.count}`);
+            const arr = Object.values(p.platforms).map(pl => `${escapeHtml(pl.name)}: ${pl.count}`);
             breakdownStr = `<div style="font-size:10px;color:var(--pm-text-dim);margin-left:13px;margin-top:2px;">${arr.join(', ')}</div>`;
         }
 
@@ -692,7 +709,7 @@ function showTooltipDay(e, el, occ) {
                 <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;">
                     <div style="display:flex;align-items:center;gap:6px">
                         <div style="width:7px;height:7px;border-radius:50%;background:${color};flex-shrink:0"></div>
-                        <div style="font-size:12px;color:var(--pm-text-muted)">${p.name}</div>
+                        <div style="font-size:12px;color:var(--pm-text-muted)">${escapeHtml(p.name)}</div>
                     </div>
                     <div style="font-family:var(--pm-mono);font-size:12px;color:${occupancyColor(p.occupied, p.capacity)}">
                         ${p.occupied} / ${p.capacity}

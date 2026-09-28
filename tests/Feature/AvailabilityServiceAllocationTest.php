@@ -24,7 +24,7 @@ class AvailabilityServiceAllocationTest extends TestCase
     {
         parent::setUp();
         // Disabilitiamo eventi che mandano mail o simili
-        \Illuminate\Support\Facades\Event::fake();
+        \Illuminate\Support\Facades\Mail::fake();
     }
 
     public function test_staff_cannot_create_allocations()

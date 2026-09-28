@@ -6,7 +6,7 @@
     <div class="pm-narrow-page pm-customer-page">
         <x-flash-message />
         <form method="POST" action="{{ $customer->exists ? route('customers.update', $customer) : route('customers.store') }}" class="pm-form">
-            @csrf
+            @csrf @parkingContext
             @if($customer->exists) @method('PUT') @endif
             @if($duplicates->isNotEmpty())
                 <div class="pm-notice pm-notice-info" role="status">

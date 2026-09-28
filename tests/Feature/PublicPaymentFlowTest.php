@@ -25,7 +25,7 @@ class PublicPaymentFlowTest extends TestCase
     protected function createReservation(array $attributes = [])
     {
         // Setup minimal foreign keys needed by the DB schema
-        $platform = \App\Models\Platform::firstOrCreate(['slug' => 'test'], ['name' => 'Test', 'active' => true]);
+        $platform = \App\Models\Platform::firstOrCreate(['slug' => 'website'], ['name' => 'Test', 'active' => true]);
         $parking = \App\Models\Parking::firstOrCreate(['code' => 'TEST'], ['name' => 'Test', 'active' => true, 'capacity_mode' => 'global', 'total_spots' => 100]);
         $product = \App\Models\ParkingProduct::firstOrCreate(['parking_id' => $parking->id, 'code' => 'PROD'], ['name' => 'Product', 'active' => true, 'price' => 10, 'is_active' => true, 'capacity' => 100]);
         $listing = \App\Models\ParkingListing::firstOrCreate(['parking_id' => $parking->id, 'platform_id' => $platform->id], ['active' => true]);

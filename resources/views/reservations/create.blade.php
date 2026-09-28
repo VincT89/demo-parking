@@ -13,7 +13,7 @@
 
     <div class="pm-card pm-animate" style="max-width:720px">
         <form method="POST" action="{{ route('reservations.store') }}" class="pm-form">
-            @csrf
+            @csrf @parkingContext
             <x-customer-picker />
 
             <div class="pm-form-grid-2">

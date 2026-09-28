@@ -45,7 +45,7 @@
                     <h2 class="pm-card-title">{{ __('Registra pagamento') }}</h2>
                     <p class="pm-card-help">{{ __('Il pagamento resta nello storico con data e operatore.') }}</p>
                     <form method="POST" action="{{ route('garage.subscriptions.payments.store', $subscription) }}" class="pm-form pm-mt-20">
-                        @csrf
+                        @csrf @parkingContext
                         <div class="pm-form-group"><label for="payment_method" class="pm-label">{{ __('Metodo') }}</label><select id="payment_method" name="method" class="pm-select">@foreach($paymentMethods as $method)<option value="{{ $method->value }}">{{ $method->label() }}</option>@endforeach</select></div>
                         <div class="pm-form-group"><label for="payment_amount" class="pm-label">{{ __('Importo') }}</label><div class="pm-input-suffix"><input id="payment_amount" name="amount" type="number" min="0.01" step="0.01" value="{{ $subscription->price }}" class="pm-input" required><span>€</span></div></div>
                         <div class="pm-form-group"><label for="payment_paid_at" class="pm-label">{{ __('Data pagamento') }}</label><input id="payment_paid_at" name="paid_at" type="datetime-local" value="{{ now()->format('Y-m-d\TH:i') }}" class="pm-input" required></div>
@@ -58,7 +58,7 @@
                     <section class="pm-card">
                         <h2 class="pm-card-title">{{ __('Stripe') }}</h2>
                         <p class="pm-card-help">{{ config('demo.enabled') ? __('Apre il simulatore della chiamata Stripe senza usare denaro reale.') : __('Crea una sessione Stripe Checkout per l’abbonamento mensile.') }}</p>
-                        <form method="POST" action="{{ route('garage.subscriptions.stripe.checkout', $subscription) }}" class="pm-mt-20">@csrf<button class="pm-btn pm-btn-secondary pm-btn-block" type="submit">{{ config('demo.enabled') ? __('Simula link Stripe') : __('Apri Stripe Checkout') }}</button></form>
+                        <form method="POST" action="{{ route('garage.subscriptions.stripe.checkout', $subscription) }}" class="pm-mt-20">@csrf @parkingContext<button class="pm-btn pm-btn-secondary pm-btn-block" type="submit">{{ config('demo.enabled') ? __('Simula link Stripe') : __('Apri Stripe Checkout') }}</button></form>
                     </section>
                 @endif
             </aside>
@@ -75,7 +75,7 @@
                         <td data-label="{{ __('Importo') }}" class="pm-mono">€ {{ number_format((float) $payment->amount, 2, ',', '.') }}</td>
                         <td data-label="{{ __('Operatore') }}">{{ $payment->recordedBy?->name ?? ($payment->provider === 'stripe' ? __('Webhook Stripe') : '—') }}</td>
                         <td data-label="{{ __('Stato') }}"><span class="pm-badge {{ $payment->status->value === 'paid' ? 'green' : ($payment->status->value === 'pending' ? 'amber' : 'gray') }}">{{ $payment->status->label() }}</span>@if($payment->reversal_reason)<span class="pm-td-sub">{{ $payment->reversal_reason }}</span>@endif</td>
-                        <td data-label="{{ __('Azioni') }}">@if($payment->status->value === 'paid' && ($payment->provider !== 'stripe' || config('demo.enabled')))<details class="pm-row-details"><summary>{{ __('Storna') }}</summary><form method="POST" action="{{ route('garage.payments.reverse', $payment) }}" class="pm-inline-reversal-form">@csrf<input name="reversal_reason" class="pm-input" placeholder="{{ __('Motivo dello storno') }}" required><button class="pm-btn pm-btn-danger pm-btn-sm" type="submit">{{ __('Conferma storno') }}</button></form></details>@else—@endif</td>
+                        <td data-label="{{ __('Azioni') }}">@if($payment->status->value === 'paid' && ($payment->provider !== 'stripe' || config('demo.enabled')))<details class="pm-row-details"><summary>{{ __('Storna') }}</summary><form method="POST" action="{{ route('garage.payments.reverse', $payment) }}" class="pm-inline-reversal-form">@csrf @parkingContext<input name="reversal_reason" class="pm-input" placeholder="{{ __('Motivo dello storno') }}" required><button class="pm-btn pm-btn-danger pm-btn-sm" type="submit">{{ __('Conferma storno') }}</button></form></details>@else—@endif</td>
                     </tr>
                 @empty<tr class="pm-responsive-empty"><td colspan="7">{{ __('Nessun pagamento registrato.') }}</td></tr>@endforelse
             </tbody></table></div>

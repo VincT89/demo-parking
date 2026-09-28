@@ -26,6 +26,9 @@ class AdapterRegistry
      */
     public function forPlatform(Platform $platform): PlatformAdapterInterface
     {
+        if (! config('demo.enabled') && ! $platform->uses_legacy_credentials) {
+            return app(PlatformConnectionFactory::class)->make($platform);
+        }
         $adapter = $this->adapters->get($platform->slug);
 
         if (!$adapter) {

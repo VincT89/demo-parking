@@ -35,7 +35,7 @@
         </div>
 
         <form method="POST" action="{{ route('operational-settings.update', $parking) }}" class="pm-settings-form">
-            @csrf
+            @csrf @parkingContext
             @method('PUT')
 
             <section class="pm-card">

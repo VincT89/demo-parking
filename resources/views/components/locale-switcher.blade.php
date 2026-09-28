@@ -30,7 +30,7 @@
     <div class="pm-locale-menu" aria-label="{{ __('Lingua') }}">
         @foreach ($availableLanguages as $locale => $language)
             <form method="POST" action="{{ route('locale.update') }}">
-                @csrf
+                @csrf @parkingContext
                 <input type="hidden" name="locale" value="{{ $locale }}">
                 <button
                     type="submit"

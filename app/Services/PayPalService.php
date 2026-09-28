@@ -7,9 +7,17 @@ use Illuminate\Support\Facades\Http;
 
 class PayPalService
 {
+    public function __construct(private ?array $settings = null) {}
+
+    private function setting(string $key, mixed $default = null): mixed
+    {
+        $settings = $this->settings ?? app(PaymentConfiguration::class)->requireProvider('paypal');
+        return $settings['paypal'][$key] ?? $default;
+    }
+
     public function baseUrl(): string
     {
-        return config('payments.paypal.mode') === 'live'
+        return $this->setting('mode') === 'live'
             ? 'https://api-m.paypal.com'
             : 'https://api-m.sandbox.paypal.com';
     }
@@ -18,8 +26,8 @@ class PayPalService
     {
         $response = Http::asForm()
             ->withBasicAuth(
-                config('payments.paypal.client_id'),
-                config('payments.paypal.client_secret')
+                $this->setting('client_id'),
+                $this->setting('client_secret')
             )
             ->post($this->baseUrl() . '/v1/oauth2/token', [
                 'grant_type' => 'client_credentials',
@@ -42,7 +50,7 @@ class PayPalService
                 'purchase_units' => [[
                     'reference_id' => (string) $reservation->external_id,
                     'amount' => [
-                        'currency_code' => config('payments.paypal.currency'),
+                        'currency_code' => $this->setting('currency'),
                         'value' => number_format($reservation->price, 2, '.', ''),
                     ],
                 ]],

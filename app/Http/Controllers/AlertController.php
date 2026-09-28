@@ -25,7 +25,7 @@ class AlertController extends Controller
             $dismissed[] = $id;
             session(['dismissed_alerts' => $dismissed]);
             if (auth()->check()) {
-                cache()->forget('alert_count_' . auth()->id());
+                cache()->forget('alert_count_' . auth()->id() . '_parking_' . app(\App\Tenancy\ParkingContext::class)->parking?->id);
             }
         }
         return back();
