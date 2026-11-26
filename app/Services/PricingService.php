@@ -8,6 +8,8 @@ use Carbon\Carbon;
 
 class PricingService
 {
+    public const VALET_SURCHARGE = 10.0;
+
     public function amountForReservation(Reservation $reservation): int
     {
         // returns cents

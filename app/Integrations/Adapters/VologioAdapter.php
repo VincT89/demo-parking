@@ -7,10 +7,15 @@ use App\Models\ParkingListing;
 use Carbon\Carbon;
 use App\Integrations\Support\RooshProviderClient;
 use App\Integrations\DTO\NormalizedReservation;
+use App\Integrations\Support\ValetDetector;
+use App\Models\PlatformProductMapping;
+use Illuminate\Support\Facades\Log;
 
 class VologioAdapter extends AbstractPlatformAdapter
 {
     private RooshProviderClient $client;
+
+    private ?array $valetServices = null;
 
     public function __construct(RooshProviderClient $client)
     {
@@ -25,6 +30,16 @@ class VologioAdapter extends AbstractPlatformAdapter
     public function getPlatformSlug(): string
     {
         return 'vologio';
+    }
+
+    private function serviceTypes(): array
+    {
+        return $this->valetServices ??= ValetDetector::rooshServices($this->client->getServiceLocations());
+    }
+
+    public function classifyValet(array $payload): ?bool
+    {
+        return ValetDetector::fromPayload('vologio', $payload, $this->serviceTypes());
     }
 
     public function defaultSyncWindow(): array
@@ -43,22 +58,55 @@ class VologioAdapter extends AbstractPlatformAdapter
             throw new \RuntimeException("ParkingListing (ID: {$listing->id}) non ha un external_id configurato.");
         }
 
+        $this->valetServices = null;
+        try {
+            $this->serviceTypes();
+        } catch (\Exception $e) {
+            /** Preserve ordinary imports when metadata is unavailable, without guessing additional locations. */
+            $this->valetServices = [];
+            Log::warning('Catalogo Roosh non disponibile: classificazione valet e sedi aggiuntive non verificate.', ['listing_id' => $listing->id]);
+        }
+
+        $mappedServices = PlatformProductMapping::query()
+            ->where('platform_id', $listing->platform_id)
+            ->whereHas('parkingProduct', fn ($query) => $query->where('parking_id', $listing->parking_id))
+            ->active()
+            ->pluck('external_ref');
+        $additionalValetServices = [];
+        foreach ($mappedServices as $serviceId) {
+            $service = $this->valetServices[(string) $serviceId] ?? null;
+            /** An account's other locations are authorized only by an explicit product mapping for this parking. */
+            if ($service && $service['is_valet'] === true && $service['location_id'] !== null
+                && $service['location_id'] !== (string) $externalLocationId) {
+                $additionalValetServices[(string) $serviceId] = $service['location_id'];
+            }
+        }
+
         if ($mode === 'stay_period') {
             $records = $this->client->findBookingsByServiceLocationId([
                 $listing->external_id
             ]);
+            if ($additionalValetServices !== []) {
+                $records = collect($records)
+                    ->merge($this->client->findBookingsByServiceId(array_keys($additionalValetServices)))
+                    ->unique(fn ($record) => (string) ($record['id'] ?? json_encode($record)))
+                    ->values()
+                    ->all();
+            }
         } else {
             $records = $this->client->findBookingsByModification($from, $to);
         }
 
         return collect($records)
-            ->filter(function ($record) use ($from, $to, $mode, $externalLocationId) {
+            ->filter(function ($record) use ($from, $to, $mode, $externalLocationId, $additionalValetServices) {
                 $locationId = $record['service_location_id']
                     ?? $record['service_location']['id']
                     ?? $record['serviceLocation']['id']
                     ?? null;
 
-                if ((string) $locationId !== (string) $externalLocationId) {
+                $mappedValetLocation = $additionalValetServices[(string) ($record['service_id'] ?? '')] ?? null;
+                if ((string) $locationId !== (string) $externalLocationId
+                    && ($mappedValetLocation === null || (string) $locationId !== $mappedValetLocation)) {
                     return false;
                 }
 
@@ -162,7 +210,8 @@ class VologioAdapter extends AbstractPlatformAdapter
             raw_data: $record,
             status: $mappedStatus,
             flight_reference: $flightReference,
-            passengers_count: $this->passengersCount($record)
+            passengers_count: $this->passengersCount($record),
+            is_valet: $this->classifyValet($record)
         );
     }
 }

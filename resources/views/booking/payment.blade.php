@@ -24,7 +24,7 @@
 
     <div class="pm-card pm-card-payment">
         <div class="pm-card-header" style="text-align: center; border-bottom: 1px solid var(--pm-border); padding-bottom: 20px;">
-            <h2 class="pm-card-title">{{ __('Completa la prenotazione demo') }}</h2>
+            <h2 class="pm-card-title">{{ config('demo.enabled') ? __('Completa la prenotazione demo') : __('Completa la prenotazione') }}</h2>
             <div style="font-size: 14px; color: var(--pm-text-muted); margin-top: 6px;">
                 {{ __('Prenotazione') }} <span style="background: var(--pm-bg-soft); color: var(--pm-text-dark); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: 600;">{{ $reservation->external_id }}</span>
             </div>
@@ -54,15 +54,27 @@
                 </a>
             </div>
 
+
+            <div class="pm-form-group">
+                <div class="pm-label">{{ __('Tipo di servizio') }}</div>
+                <div>{{ $reservation->is_valet === null ? __('Non specificato') : ($reservation->is_valet ? __('Car valet') : __('Parcheggio standard')) }}</div>
+                @if ($reservation->is_valet && (float) data_get($reservation->raw_data, 'valet_surcharge', 0) > 0)
+                    <p class="pm-form-note">{{ __('Supplemento Car valet di :amount € incluso nel totale.', ['amount' => \App\Support\PriceFormatter::decimal((float) data_get($reservation->raw_data, 'valet_surcharge'))]) }}</p>
+                @endif
+                @if ($reservation->car_wash)
+                    <div>{{ $reservation->car_wash->label() }}</div>
+                    <p class="pm-form-note">{{ __('Supplemento di :amount € incluso nel totale.', ['amount' => \App\Support\PriceFormatter::decimal((float) $reservation->car_wash_surcharge)]) }}</p>
+                @endif
+            </div>
             <!-- Summary -->
             <div style="background: var(--pm-bg-soft); border: 1px solid var(--pm-border); border-radius: 8px; padding: 20px; margin-bottom: 32px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--pm-border); padding-bottom: 16px; margin-bottom: 16px;">
-                    <span style="color: var(--pm-text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ __('Importo dimostrativo') }}</span>
+                    <span style="color: var(--pm-text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">{{ config('demo.enabled') ? __('Importo dimostrativo') : __('Importo totale') }}</span>
                     <span style="font-size: 28px; font-weight: 700; color: var(--pm-text-dark);">€ {{ number_format($reservation->price, 2, ',', '.') }}</span>
                 </div>
                 <div style="font-size: 13px; color: var(--pm-text-muted); text-align: center; display: flex; align-items: center; justify-content: center;">
                     <svg style="width: 16px; height: 16px; color: #16a34a; margin-right: 6px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    {{ __('Nessun pagamento viene elaborato in modalità demo') }}
+                    {{ config('demo.enabled') ? __('Nessun pagamento viene elaborato in modalità demo') : __('Il saldo verrà effettuato direttamente presso la struttura.') }}
                 </div>
             </div>
 
@@ -73,15 +85,15 @@
             <div id="payment-options">
                 
                 <div style="background: #eff6ff; border: 1px solid #bfdbfe; color: #1e3a8a; padding: 16px; border-radius: 8px; margin-bottom: 24px;">
-                    <strong style="display: block; margin-bottom: 8px; font-size: 15px;">{{ __('Conferma dimostrativa') }}</strong>
-                    <span style="font-size: 14px;">{{ __('La conferma aggiorna soltanto il database locale della demo. Carte, PayPal ed email reali sono disattivati.') }}</span>
+                    <strong style="display: block; margin-bottom: 8px; font-size: 15px;">{{ config('demo.enabled') ? __('Conferma dimostrativa') : __('Pagamento in struttura') }}</strong>
+                    <span style="font-size: 14px;">{{ config('demo.enabled') ? __('La conferma aggiorna soltanto il database locale della demo. Carte, PayPal ed email reali sono disattivati.') : __('La prenotazione sarà confermata ora e il saldo verrà effettuato direttamente presso la struttura al momento dell’arrivo.') }}</span>
                 </div>
 
                 <form method="POST" action="{{ route('public.booking.onsite.confirm', $reservation->external_id) }}">
                     @csrf
                     <button type="submit" class="pm-btn pm-btn-primary" style="width: 100%; padding: 14px; font-size: 16px; display: flex; justify-content: center; align-items: center;">
                         <svg style="width: 20px; height: 20px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                        {{ __('Conferma prenotazione demo') }}
+                        {{ config('demo.enabled') ? __('Conferma prenotazione demo') : __('Conferma prenotazione (paga all’arrivo)') }}
                     </button>
                 </form>
                 
@@ -89,7 +101,7 @@
         </div>
         
         <div style="background: var(--pm-bg-soft); border-top: 1px solid var(--pm-border); padding: 16px; text-align: center;">
-            <span style="font-size: 13px; font-weight: 500; color: var(--pm-text-muted);">{{ __('Ambiente dimostrativo Sodano Consulting') }}</span>
+            <span style="font-size: 13px; font-weight: 500; color: var(--pm-text-muted);">{{ config('demo.enabled') ? __('Ambiente dimostrativo Sodano Consulting') : $bookingParking->name }}</span>
         </div>
     </div>
 

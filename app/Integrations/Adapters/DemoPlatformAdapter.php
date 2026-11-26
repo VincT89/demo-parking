@@ -27,6 +27,15 @@ class DemoPlatformAdapter extends AbstractPlatformAdapter
         return $this->platformSlug;
     }
 
+    public function classifyValet(array $payload): ?bool
+    {
+        if (($payload['demo'] ?? false) === true && is_bool($payload['is_valet'] ?? null)) {
+            return $payload['is_valet'];
+        }
+
+        return parent::classifyValet($payload);
+    }
+
     public function defaultSyncWindow(): array
     {
         return [
@@ -170,6 +179,7 @@ class DemoPlatformAdapter extends AbstractPlatformAdapter
         $price = round(((float) $mapping->parkingProduct->price) * $billableDays, 2);
         $platformCreatedAt = $startsAt->copy()->subDays($this->number($seed.':lead-time', 4, 45));
         $cancelledAt = $status === ReservationStatus::Cancelled ? now()->copy()->subMinutes(15) : null;
+        $isValet = $this->number($seed.':valet', 0, 3) === 0;
 
         return new NormalizedReservation(
             external_id: $externalId,
@@ -187,6 +197,7 @@ class DemoPlatformAdapter extends AbstractPlatformAdapter
             notes: 'DEMO API · '.$listing->platform->name,
             raw_data: [
                 'demo' => true,
+                'is_valet' => $isValet,
                 'simulated_api' => $this->platformSlug,
                 'request_id' => 'DEMO-REQ-'.strtoupper(substr(hash('sha256', $seed.':'.$cycle), 0, 12)),
                 'sync_cycle' => $cycle,
@@ -198,6 +209,7 @@ class DemoPlatformAdapter extends AbstractPlatformAdapter
             platform_created_at: $platformCreatedAt,
             platform_updated_at: $cycle > 0 ? now()->copy()->subMinutes(5) : $platformCreatedAt,
             platform_cancelled_at: $cancelledAt,
+            is_valet: $isValet,
         );
     }
 

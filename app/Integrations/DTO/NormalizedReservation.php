@@ -26,6 +26,7 @@ class NormalizedReservation
         public readonly ?int $passengers_count = null,
         public readonly ?Carbon $platform_created_at = null,
         public readonly ?Carbon $platform_updated_at = null,
-        public readonly ?Carbon $platform_cancelled_at = null
+        public readonly ?Carbon $platform_cancelled_at = null,
+        public readonly ?bool $is_valet = null
     ) {}
 }

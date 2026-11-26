@@ -7,6 +7,7 @@
         </div>
     @endif
 
+    @if(config('demo.enabled'))
     <div style="background: #eff6ff; border-left: 4px solid #2563eb; color: #1e3a8a; padding: 16px; border-radius: 8px; margin-bottom: 24px; display: flex; align-items: flex-start; gap: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05);">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
         <div style="font-size: 15px; line-height: 1.5; width: 100%;">
@@ -14,6 +15,12 @@
             <div>{{ __('Inserisci esclusivamente dati fittizi. La prenotazione rimane nell’ambiente demo e non viene trasmessa a strutture o piattaforme reali.') }}</div>
         </div>
     </div>
+
+    @endif
+
+    @if($errors->any())
+        <div class="pm-alert pm-alert-danger" role="alert"><ul>@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+    @endif
 
     <div class="pm-card">
         <div class="pm-card-header">
@@ -77,6 +84,27 @@
                         </div>
                     </div>
 
+                    <div class="pm-booking-grid pm-booking-grid--two">
+                        <div class="pm-form-group">
+                            <label class="pm-label" for="is_valet">{{ __('Tipo di servizio') }}</label>
+                            <select id="is_valet" name="is_valet" class="pm-select" required>
+                                <option value="0" @selected(in_array(old('is_valet', 0), [0, '0', false], true))>{{ __('Parcheggio standard') }}</option>
+                                <option value="1" @selected(in_array(old('is_valet', 0), [1, '1', true], true))>{{ __('Car valet') }} (+{{ \App\Support\PriceFormatter::decimal($valetSurcharge) }} €)</option>
+                            </select>
+                            @error('is_valet') <span class="pm-form-error" role="alert">{{ $message }}</span> @enderror
+                        </div>
+                        <div class="pm-form-group">
+                            <label class="pm-label" for="car_wash">{{ __('Lavaggio facoltativo') }}</label>
+                            <select id="car_wash" name="car_wash" class="pm-select">
+                                <option value="">{{ __('Nessun lavaggio') }}</option>
+                                @foreach ($carWashTypes as $carWash)
+                                    <option value="{{ $carWash->value }}" @selected(old('car_wash') === $carWash->value)>{{ $carWash->label() }} (+{{ \App\Support\PriceFormatter::decimal($carWash->surcharge()) }} €)</option>
+                                @endforeach
+                            </select>
+                            @error('car_wash') <span class="pm-form-error" role="alert">{{ __('Seleziona un’opzione di lavaggio valida.') }}</span> @enderror
+                        </div>
+                    </div>
+
                     <div style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; padding: 16px; background: #f8fafc; border: 1px solid var(--pm-border); border-radius: 8px;">
                         <div>
                             <div style="font-weight: 500; margin-bottom: 4px;">{{ __('Verifica disponibilità') }}</div>
@@ -87,7 +115,7 @@
 
                     <div id="availability-result" style="display: none; padding: 16px; border-radius: 8px; margin-bottom: 24px;"></div>
 
-                    <div id="customer-details" style="display: none; border-top: 1px solid var(--pm-border); padding-top: 24px;">
+                    <div id="customer-details" style="display: {{ $errors->any() ? 'block' : 'none' }}; border-top: 1px solid var(--pm-border); padding-top: 24px;">
                         <h3 style="font-size: 16px; font-weight: 600; margin-top: 0; margin-bottom: 16px;">{{ __('I tuoi dati') }}</h3>
                         
                         <div class="pm-form-group">
@@ -121,6 +149,16 @@
                                 @error('flight_reference') <span style="color: #991b1b; font-size: 12px; margin-top: 4px; display: block;">{{ $message }}</span> @enderror
                             </div>
                         </div>
+
+                        @if ($bookingParking?->whatsappReviewsEnabled())
+                            <div class="pm-form-group">
+                                <div class="pm-checkbox-group">
+                                    <input id="whatsapp-review-opt-in" class="pm-checkbox" type="checkbox" name="whatsapp_review_opt_in" value="1" @checked(in_array(old('whatsapp_review_opt_in'), [true, 1, '1'], true))>
+                                    <label for="whatsapp-review-opt-in" class="pm-checkbox-label">{{ __('Acconsento a ricevere da :parking un invito su WhatsApp a lasciare una recensione Google, 24 ore dopo l’uscita.', ['parking' => $bookingParking->name]) }}</label>
+                                </div>
+                                @error('whatsapp_review_opt_in') <span class="pm-form-error" role="alert">{{ $message }}</span> @enderror
+                            </div>
+                        @endif
 
                         <div style="text-align: right; margin-top: 24px;">
                             <button type="submit" class="pm-btn pm-btn-primary" style="padding: 12px 24px; font-size: 16px;">{{ __('Conferma prenotazione') }}</button>
@@ -166,7 +204,9 @@
                         arrival_time: document.getElementById('arrival_time').value,
                         departure_date: document.getElementById('departure_date').value,
                         departure_time: document.getElementById('departure_time').value,
-                        spots: document.getElementById('spots').value
+                        spots: document.getElementById('spots').value,
+                        is_valet: document.getElementById('is_valet').value,
+                        car_wash: document.getElementById('car_wash').value
                     })
                 });
                 
@@ -213,7 +253,7 @@
         });
 
         // Hide customer form if inputs change
-        const inputs = ['arrival_date', 'arrival_time', 'departure_date', 'departure_time', 'product_code', 'spots'];
+        const inputs = ['arrival_date', 'arrival_time', 'departure_date', 'departure_time', 'product_code', 'spots', 'is_valet', 'car_wash'];
         inputs.forEach(id => {
             document.getElementById(id)?.addEventListener('change', () => {
                 document.getElementById('availability-result').style.display = 'none';

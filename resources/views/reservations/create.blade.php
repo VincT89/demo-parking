@@ -44,6 +44,15 @@
                 </div>
             </div>
 
+            <div class="pm-form-group">
+                <label class="pm-label" for="reservation-is_valet">{{ __('Tipo di servizio') }}</label>
+                <select id="reservation-is_valet" name="is_valet" class="pm-select" required>
+                    <option value="0" @selected(in_array(old('is_valet', 0), [0, '0', false], true))>{{ __('Parcheggio standard') }}</option>
+                    <option value="1" @selected(in_array(old('is_valet', 0), [1, '1', true], true))>{{ __('Car valet') }}</option>
+                </select>
+                @error('is_valet') <span class="pm-form-error" role="alert">{{ $message }}</span> @enderror
+            </div>
+
             <div class="pm-form-grid-3">
                 <div class="pm-form-group">
                     <label class="pm-label pm-label-required">{{ __('Nome cliente') }}</label>

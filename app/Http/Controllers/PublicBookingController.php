@@ -11,9 +11,14 @@ use App\Models\Reservation;
 use App\Services\AvailabilityService;
 use App\Services\ReservationService;
 use App\Services\ParkingAssignmentService;
+use App\Services\PricingService;
+use App\Services\WhatsAppReviewService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use App\Enums\ReservationStatus;
+use App\Enums\CarWashType;
+use Illuminate\Validation\Rule;
 
 class PublicBookingController extends Controller
 {
@@ -30,7 +35,13 @@ class PublicBookingController extends Controller
             abort(404, __('Nessun prodotto disponibile per la prenotazione.'));
         }
 
-        return view('booking.form', ['products' => $products, 'paymentSettings' => app(\App\Services\PaymentConfiguration::class)->forManagement()]);
+        return view('booking.form', [
+            'products' => $products,
+            'publicParkingKey' => app(\App\Tenancy\ParkingContext::class)->parking->public_booking_key,
+            'valetSurcharge' => PricingService::VALET_SURCHARGE,
+            'carWashTypes' => CarWashType::cases(),
+            'paymentSettings' => app(\App\Services\PaymentConfiguration::class)->forManagement(),
+        ]);
     }
 
     public function checkAvailability(Request $request, ParkingAssignmentService $assignmentService)
@@ -42,7 +53,9 @@ class PublicBookingController extends Controller
             'departure_date' => ['required', 'date_format:Y-m-d'],
             'departure_time' => ['required', 'date_format:H:i'],
             'spots' => 'integer|min:1|max:10',
-        ]);
+            'is_valet' => ['sometimes', 'boolean'],
+            'car_wash' => ['nullable', Rule::enum(CarWashType::class)],
+        ], ['is_valet.boolean' => __('Seleziona Parcheggio standard oppure Car valet.'), 'car_wash.Illuminate\\Validation\\Rules\\Enum' => __('Seleziona un’opzione di lavaggio valida.'), 'whatsapp_review_opt_in.boolean' => __('Seleziona un valore valido per il consenso WhatsApp.')]);
 
         $startsAt = Carbon::createFromFormat(
             'Y-m-d H:i',
@@ -68,13 +81,17 @@ class PublicBookingController extends Controller
                 $validated['product_code'],
                 $startsAt,
                 $endsAt,
-                $spots
+                $spots,
+                (bool) ($validated['is_valet'] ?? false),
+                CarWashType::tryFrom($validated['car_wash'] ?? '')
             );
 
             return response()->json([
                 'available' => true,
                 'total_price' => $result['price'],
-                'price_formatted' => number_format($result['price'], 2, ',', '.') . ' €'
+                'valet_surcharge' => $result['valet_surcharge'],
+                'car_wash_surcharge' => $result['car_wash_surcharge'],
+                'price_formatted' => \App\Support\PriceFormatter::decimal($result['price']) . ' €'
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -86,8 +103,9 @@ class PublicBookingController extends Controller
 
     public function store(Request $request, ReservationService $reservationService, ParkingAssignmentService $assignmentService)
     {
+        $parking = app(\App\Tenancy\ParkingContext::class)->parking;
         $validated = $request->validate([
-            'product_code' => ['required', 'string', \Illuminate\Validation\Rule::exists('parking_products', 'code')->where('parking_id', app(\App\Tenancy\ParkingContext::class)->parking->id)->where('is_active', true)],
+            'product_code' => ['required', 'string', \Illuminate\Validation\Rule::exists('parking_products', 'code')->where('parking_id', $parking->id)->where('is_active', true)],
             'arrival_date' => ['required', 'date_format:Y-m-d'],
             'arrival_time' => ['required', 'date_format:H:i'],
             'departure_date' => ['required', 'date_format:Y-m-d'],
@@ -99,7 +117,20 @@ class PublicBookingController extends Controller
             'license_plate' => 'required|string|max:20',
             'flight_reference' => ['nullable', 'string', 'max:20'],
             'passengers_count' => ['required', 'integer', 'min:1', 'max:9'],
-        ]);
+            'is_valet' => ['sometimes', 'boolean'],
+            'car_wash' => ['nullable', Rule::enum(CarWashType::class)],
+            'whatsapp_review_opt_in' => ['sometimes', 'boolean'],
+        ], ['is_valet.boolean' => __('Seleziona Parcheggio standard oppure Car valet.'), 'car_wash.Illuminate\\Validation\\Rules\\Enum' => __('Seleziona un’opzione di lavaggio valida.'), 'whatsapp_review_opt_in.boolean' => __('Seleziona un valore valido per il consenso WhatsApp.')]);
+
+        $reviewConsent = null;
+        if ($parking->whatsappReviewsEnabled() && ($validated['whatsapp_review_opt_in'] ?? false)) {
+            $number = WhatsAppReviewService::internationalNumber($validated['customer_phone']);
+            if ($number === null) {
+                throw ValidationException::withMessages(['whatsapp_review_opt_in' => __('Per ricevere l’invito su WhatsApp, aggiungi il prefisso internazionale al numero.')]);
+            }
+
+            $reviewConsent = WhatsAppReviewService::consent($number, 'website');
+        }
 
         // Website Platform (deve già esistere, configurata via seeder, altrimenti fallisce esplicitamente 404)
         $platform = Platform::where('slug', 'website')->firstOrFail();
@@ -126,7 +157,9 @@ class PublicBookingController extends Controller
                 $validated['product_code'],
                 $startsAt,
                 $endsAt,
-                $validated['spots']
+                $validated['spots'],
+                (bool) ($validated['is_valet'] ?? false),
+                CarWashType::tryFrom($validated['car_wash'] ?? '')
             );
         } catch (\Exception $e) {
             return back()->withInput()->with('error', $e->getMessage());
@@ -155,10 +188,11 @@ class PublicBookingController extends Controller
             'status' => ReservationStatus::Pending->value, // Stato iniziale
             'expires_at' => now()->addMinutes(15),
             'passengers_count' => max(1, (int) $validated['passengers_count']),
-            'raw_data' => [
-                'source' => 'website',
-                'demo' => (bool) config('demo.enabled'),
-            ]
+            'is_valet' => $validated['is_valet'] ?? false,
+            'car_wash' => $validated['car_wash'] ?? null,
+            'car_wash_surcharge' => $assignment['car_wash_surcharge'],
+            'whatsapp_review_consent' => $reviewConsent,
+            'raw_data' => ['source' => 'website', 'valet_surcharge' => $assignment['valet_surcharge'], 'demo' => (bool) config('demo.enabled')]
         ];
 
         $result = $reservationService->create($listing, $data);

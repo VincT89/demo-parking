@@ -1736,3 +1736,8 @@ body.pm-public .pm-avail-no {
     .pm-mobile-table-hint { display:block; margin-bottom:10px; }
     .pm-management-page .pm-card { padding:20px 16px; }
 }
+
+.pm-valet-label { display: block; font-size: 0.8125rem; color: var(--pm-accent); margin-top: 0.25rem; }
+.pm-valet-row { border-inline-start: 3px solid var(--pm-accent); }
+.pm-valet-filter { flex: 0 0 auto; margin: 0; padding-block: 0.5rem; }
+.pm-car-wash-label { display: inline-block; margin-top: 0.25rem; white-space: normal; }

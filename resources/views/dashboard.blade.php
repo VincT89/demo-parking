@@ -133,7 +133,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach($dashboardIncomingReservationsToday as $reservation)
-                                        <tr>
+                                        <tr @class(['pm-valet-row' => $reservation->is_valet])>
                                             <td class="pm-mono">{{ $reservation->starts_at->format('H:i') }}</td>
                                             <td>
                                                 @if($reservation->license_plate)
@@ -167,6 +167,9 @@
                                             </td>
                                             <td>
                                                 <div class="pm-td-main">{{ __($reservation->parkingProduct->name ?? 'N/D') }}</div>
+                                                @if ($reservation->is_valet)
+                                                    <strong class="pm-valet-label">{{ __('Car valet') }}</strong>
+                                                @endif
                                                 <div class="pm-td-sub">{{ __($reservation->parking->name ?? 'N/D') }}</div>
                                             </td>
                                             <td class="pm-mono">{{ $reservation->spots }}</td>
@@ -211,7 +214,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach($dashboardOutgoingReservationsToday as $reservation)
-                                        <tr>
+                                        <tr @class(['pm-valet-row' => $reservation->is_valet])>
                                             <td class="pm-mono">{{ $reservation->ends_at->format('H:i') }}</td>
                                             <td>
                                                 @if($reservation->license_plate)
@@ -245,6 +248,10 @@
                                             </td>
                                             <td>
                                                 <div class="pm-td-main">{{ __($reservation->parkingProduct->name ?? 'N/D') }}</div>
+                                                @if ($reservation->is_valet)
+                                                    <strong class="pm-valet-label">{{ __('Car valet') }}</strong>
+                                                @endif
+                                                <x-car-wash-label :type="$reservation->car_wash" />
                                                 <div class="pm-td-sub">{{ __($reservation->parking->name ?? 'N/D') }}</div>
                                             </td>
                                             <td class="pm-mono">{{ $reservation->spots }}</td>
@@ -296,9 +303,12 @@
                             </thead>
                             <tbody>
                                 @foreach ($latestReservations as $reservation)
-                                    <tr>
+                                    <tr @class(['pm-valet-row' => $reservation->is_valet])>
                                         <td>
                                             <div class="pm-td-main">{{ $reservation->customer_name }}</div>
+                                            @if ($reservation->is_valet)
+                                                <strong class="pm-valet-label">{{ __('Car valet') }}</strong>
+                                            @endif
                                             @if ($reservation->customer_email)
                                                 <div class="pm-td-sub">{{ $reservation->customer_email }}</div>
                                             @endif

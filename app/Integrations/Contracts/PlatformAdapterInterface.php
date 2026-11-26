@@ -18,6 +18,8 @@ interface PlatformAdapterInterface
      */
     public function getPlatformSlug(): string;
 
+    public function classifyValet(array $payload): ?bool;
+
     /**
      * Fetch reservations from the external platform for a specific listing within a date range.
      * 

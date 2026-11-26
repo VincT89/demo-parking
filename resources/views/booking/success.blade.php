@@ -22,7 +22,7 @@
             </div>
             <h2 class="pm-card-title" style="font-size: 24px; color: #0f172a; margin-bottom: 8px;">{{ __('Prenotazione confermata') }}</h2>
             <div style="font-size: 15px; color: var(--pm-text-muted);">
-                {{ __('Prenotazione dimostrativa confermata. Nessun pagamento reale è stato eseguito.') }}
+                {{ config('demo.enabled') ? __('Prenotazione dimostrativa confermata. Nessun pagamento reale è stato eseguito.') : __('La prenotazione è confermata. Il saldo verrà effettuato all’arrivo.') }}
             </div>
         </div>
 
@@ -40,6 +40,18 @@
                 <!-- Itinerary -->
                 <div>
                     <h3 style="font-size: 16px; font-weight: 600; color: #1e293b; margin-bottom: 16px; border-bottom: 1px solid var(--pm-border); padding-bottom: 8px;">{{ __('Dettagli sosta') }}</h3>
+            <div class="pm-form-group">
+                <div class="pm-label">{{ __('Tipo di servizio') }}</div>
+                <div>{{ $reservation->is_valet === null ? __('Non specificato') : ($reservation->is_valet ? __('Car valet') : __('Parcheggio standard')) }}</div>
+                @if ($reservation->is_valet && (float) data_get($reservation->raw_data, 'valet_surcharge', 0) > 0)
+                    <p class="pm-form-note">{{ __('Supplemento Car valet di :amount € incluso nel totale.', ['amount' => \App\Support\PriceFormatter::decimal((float) data_get($reservation->raw_data, 'valet_surcharge'))]) }}</p>
+                @endif
+                @if ($reservation->car_wash)
+                    <div>{{ $reservation->car_wash->label() }}</div>
+                    <p class="pm-form-note">{{ __('Supplemento di :amount € incluso nel totale.', ['amount' => \App\Support\PriceFormatter::decimal((float) $reservation->car_wash_surcharge)]) }}</p>
+                @endif
+            </div>
+
                     <div style="display: flex; align-items: flex-start; margin-bottom: 12px;">
                         <svg style="width: 20px; height: 20px; color: var(--pm-text-muted); margin-right: 12px; margin-top: 2px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                         <div>
@@ -94,7 +106,7 @@
             <!-- Total Paid -->
             <div style="background: var(--pm-bg-soft); border: 1px solid var(--pm-border); border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
                 <div>
-                    <div style="color: var(--pm-text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase;">{{ __('Importo dimostrativo') }}</div>
+                    <div style="color: var(--pm-text-muted); font-size: 13px; font-weight: 600; text-transform: uppercase;">{{ config('demo.enabled') ? __('Importo dimostrativo') : __('Importo totale') }}</div>
                 </div>
                 <div style="font-size: 28px; font-weight: 700; color: #0f172a;">
                     € {{ number_format($reservation->price, 2, ',', '.') }}
@@ -107,9 +119,9 @@
                     <svg style="width: 20px; height: 20px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                     {{ __('Stampa ricevuta') }}
                 </button>
-                <a href="{{ config('demo.brand_url') }}" class="pm-btn pm-btn-primary" style="display: flex; justify-content: center; align-items: center; width: 100%; text-decoration: none;">
+                <a href="{{ config('demo.enabled') ? config('demo.brand_url') : route('public.booking.form', ['parking' => $bookingParking->public_booking_key]) }}" class="pm-btn pm-btn-primary" style="display: flex; justify-content: center; align-items: center; width: 100%; text-decoration: none;">
                     <svg style="width: 20px; height: 20px; margin-right: 8px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-                    {{ __('Visita Sodano Consulting') }}
+                    {{ config('demo.enabled') ? __('Visita Sodano Consulting') : __('Nuova prenotazione') }}
                 </a>
             </div>
 

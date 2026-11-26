@@ -40,7 +40,13 @@
         <div class="calendar-summary-card">
             <div class="calendar-summary-title">{{ $type === 'entries' ? __('Veicoli in entrata') : __('Veicoli in uscita') }}</div>
             <div class="calendar-summary-value">{{ $reservationsCount }}</div>
-            <div class="calendar-summary-label">{{ __('Veicoli') }}</div>
+            <div class="calendar-summary-label">
+                @if ($valetEntriesCount !== null)
+                    <strong @class(['pm-valet-label', 'calendar-valet-subtotal' => $valetEntriesCount > 0])>{{ __('di cui :count con car valet', ['count' => $valetEntriesCount]) }}</strong>
+                @else
+                    {{ __('Veicoli') }}
+                @endif
+            </div>
         </div>
         <div class="calendar-summary-card">
             <div class="calendar-summary-title">{{ $type === 'entries' ? __('Clienti in entrata') : __('Clienti in uscita') }}</div>
@@ -73,7 +79,7 @@
                     </thead>
                     <tbody>
                         @foreach($reservations as $reservation)
-                            <tr>
+                            <tr @class(['pm-valet-row' => $reservation->is_valet])>
                                 <td class="pm-mono">
                                     {{ $type === 'entries' ? $reservation->starts_at->format('H:i') : $reservation->ends_at->format('H:i') }}
                                 </td>
@@ -109,6 +115,10 @@
                                 </td>
                                 <td>
                                     <div class="pm-td-main">{{ __($reservation->parkingProduct->name ?? 'N/D') }}</div>
+                                    @if ($reservation->is_valet)
+                                        <strong class="pm-valet-label">{{ __('Car valet') }}</strong>
+                                    @endif
+                                    @if ($type === 'exits')<x-car-wash-label :type="$reservation->car_wash" />@endif
                                     <div class="pm-td-sub">{{ __($reservation->parking->name ?? 'N/D') }}</div>
                                 </td>
                                 <td class="pm-mono">

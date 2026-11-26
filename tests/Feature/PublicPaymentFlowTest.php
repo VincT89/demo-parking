@@ -72,7 +72,8 @@ class PublicPaymentFlowTest extends TestCase
 
         $response->assertOk();
         $response->assertSee('TEST-5678');
-        $response->assertSee('Completa la prenotazione demo');
+        $response->assertSee('Completa la prenotazione')
+            ->assertDontSee('Completa la prenotazione demo');
     }
 
     public function test_success_page_requires_confirmed_status()

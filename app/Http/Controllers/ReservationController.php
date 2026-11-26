@@ -7,9 +7,11 @@ use App\Models\ParkingListing;
 use App\Models\Platform;
 use App\Services\ReservationService;
 use App\Services\AvailabilityService;
+use App\Services\WhatsAppReviewService;
 use App\Enums\ReservationStatus;
 use App\Enums\PaymentStatus;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Exports\ReservationsExport;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -40,6 +42,14 @@ class ReservationController extends Controller
 
         $query = Reservation::query()
             ->with(['parkingListing.platform', 'parkingListing.parking', 'latestPayment']);
+
+        if ($request->boolean('only_valet')) {
+            $query->where('is_valet', true);
+        }
+
+        if ($request->boolean('with_car_wash')) {
+            $query->withCarWash();
+        }
 
         match ($request->sort_by) {
             'starts_at_asc'   => $query->orderBy('starts_at', 'asc'),
@@ -136,7 +146,10 @@ class ReservationController extends Controller
             'passengers_count'   => ['required', 'integer', 'min:1', 'max:9'],
             'price'              => ['nullable', 'numeric', 'min:0'],
             'notes'              => ['nullable', 'string'],
-        ]);
+            'is_valet'           => ['sometimes', 'boolean'],
+        ], ['is_valet.boolean' => __('Seleziona Parcheggio standard oppure Car valet.'), 'status.Illuminate\\Validation\\Rules\\Enum' => __('Seleziona uno stato valido per la prenotazione.')]);
+
+        $validated['is_valet'] ??= false;
 
         if (!empty($validated['flight_reference'])) {
             $validated['flight_reference'] = strtoupper(trim($validated['flight_reference']));
@@ -158,8 +171,13 @@ class ReservationController extends Controller
 
     public function show(Reservation $reservation)
     {
-        $reservation->load(['parkingListing.platform', 'parkingListing.parking', 'parking.settings', 'parkingProduct', 'latestPayment', 'electronicInvoice']);
-        return view('reservations.show', compact('reservation'));
+        $reservation->load(['parkingListing.platform', 'parkingListing.parking', 'parking.settings', 'parkingProduct', 'latestPayment', 'electronicInvoice', 'customer']);
+
+        return view('reservations.show', [
+            'reservation' => $reservation,
+            'reviewConsent' => WhatsAppReviewService::consentedNumber($reservation) !== null,
+            'reviewPhone' => WhatsAppReviewService::internationalNumber($reservation->customer_phone),
+        ]);
     }
 
     public function edit(Reservation $reservation)
@@ -193,10 +211,18 @@ class ReservationController extends Controller
             'ends_at'        => ['required', 'date', 'after:starts_at'],
             'spots'          => ['required', 'integer', 'min:1'],
             'passengers_count' => ['required', 'integer', 'min:1', 'max:9'],
-            'status'         => ['required', 'string'],
+            'status'         => ['required', \Illuminate\Validation\Rule::enum(ReservationStatus::class)],
             'price'          => ['nullable', 'numeric', 'min:0'],
             'notes'          => ['nullable', 'string'],
-        ]);
+            'is_valet'       => ['sometimes', 'nullable', 'boolean'],
+        ], ['is_valet.boolean' => __('Seleziona Parcheggio standard oppure Car valet.'), 'status.Illuminate\\Validation\\Rules\\Enum' => __('Seleziona uno stato valido per la prenotazione.')]);
+
+        /** Conserva i secondi importati quando il modulo invia gli stessi minuti visualizzati. */
+        foreach (['starts_at', 'ends_at'] as $field) {
+            if ($validated[$field] === $reservation->{$field}->format('Y-m-d\TH:i')) {
+                $validated[$field] = $reservation->{$field}->toDateTimeString();
+            }
+        }
 
         if (!empty($validated['flight_reference'])) {
             $validated['flight_reference'] = strtoupper(trim($validated['flight_reference']));
@@ -240,6 +266,8 @@ class ReservationController extends Controller
                 dateFrom:   $request->input('date_from'),
                 dateTo:     $request->input('date_to'),
                 dateFilterType: $request->input('date_filter_type', 'starts_at'),
+                onlyValet: $request->boolean('only_valet'),
+                withCarWash: $request->boolean('with_car_wash'),
             ),
             $filename
         );
@@ -254,22 +282,25 @@ class ReservationController extends Controller
 
         if ($validated['type'] === 'entered') {
             $reservation->update(['has_entered' => $validated['value']]);
-        } elseif ($validated['type'] === 'exited') {
-            $reservation->update(['has_exited' => $validated['value']]);
+        } else {
+            DB::transaction(function () use ($reservation, $validated): void {
+                $current = Reservation::lockForUpdate()->findOrFail($reservation->id);
+                $hasExited = (bool) $validated['value'];
+
+                /** Una ripetizione della richiesta non riavvia il conteggio delle 24 ore. */
+                if ($current->has_exited !== $hasExited) {
+                    $current->has_exited = $hasExited;
+                    $current->exited_at = $hasExited ? now()->timestamp : null;
+                    $current->save();
+                }
+            }, 3);
         }
 
         $printUrl = null;
-
         if ($validated['type'] === 'exited' && $validated['value']) {
-            $settings = \App\Models\ParkingSetting::query()->firstOrCreate([
-                'parking_id' => $reservation->parking_id,
-            ]);
-
+            $settings = \App\Models\ParkingSetting::query()->firstOrCreate(['parking_id' => $reservation->parking_id]);
             if ($settings->ticket_auto_open_on_exit) {
-                $printUrl = route('reservations.ticket', [
-                    'reservation' => $reservation,
-                    'autoprint' => 1,
-                ]);
+                $printUrl = route('reservations.ticket', ['reservation' => $reservation, 'autoprint' => 1]);
             }
         }
 

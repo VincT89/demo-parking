@@ -28,6 +28,8 @@ class ReservationsExport implements
         private ?string $dateTo     = null,
         private ?string $dateFilterType = 'starts_at',
         private ?int $parkingId = null,
+        private bool $onlyValet = false,
+        private bool $withCarWash = false,
     ) {}
 
     public function query()
@@ -36,6 +38,14 @@ class ReservationsExport implements
             ->where('parking_id', $this->parkingId ?? 0)
             ->with(['parkingListing.platform', 'parkingListing.parking'])
             ->orderByDesc('starts_at');
+
+        if ($this->onlyValet) {
+            $query->where('is_valet', true);
+        }
+
+        if ($this->withCarWash) {
+            $query->withCarWash();
+        }
 
         if ($this->platformId) {
             $query->whereHas('parkingListing', fn($q) =>
@@ -65,23 +75,24 @@ class ReservationsExport implements
     public function headings(): array
     {
         return [
-            'ID',
-            'Cliente',
-            'Email',
-            'Telefono',
-            'Targa',
-            'Volo',
-            'Canale',
-            'Parcheggio',
-            'Arrivo',
-            'Partenza',
-            'Posti',
-            'Clienti',
-            'Prezzo (€)',
-            'Stato',
-            'Codice esterno',
-            'Note',
-            'Creata il',
+            __('ID'),
+            __('Cliente'),
+            __('Email'),
+            __('Telefono'),
+            __('Targa'),
+            __('Volo'),
+            __('Canale'),
+            __('Parcheggio'),
+            __('Arrivo'),
+            __('Partenza'),
+            __('Posti'),
+            __('Clienti'),
+            __('Prezzo (€)'),
+            __('Stato'),
+            __('Codice esterno'),
+            __('Note'),
+            __('Creata il'),
+            __('Lavaggio'),
         ];
     }
 
@@ -105,6 +116,7 @@ class ReservationsExport implements
             $reservation->external_id ?? '',
             $reservation->notes ?? '',
             $reservation->created_at->format('d/m/Y H:i'),
+            $reservation->car_wash?->label() ?? '',
         ];
     }
 
@@ -144,11 +156,12 @@ class ReservationsExport implements
             'O' => 18,
             'P' => 30,
             'Q' => 16,
+            'R' => 30,
         ];
     }
 
     public function title(): string
     {
-        return 'Prenotazioni';
+        return __('Prenotazioni');
     }
 }

@@ -29,6 +29,16 @@ La demo usa un database reale per conservare dati sintetici e operazioni di prov
 
 Il garage riserva una quantità di posti: non assegna stalli numerati su una planimetria. Il piano navette non comprende tracciamento dei mezzi, turni degli autisti o aggiornamenti dei voli in tempo reale. Il biglietto di ritiro non sostituisce una fattura o un documento fiscale.
 
+## Allineamento delle funzioni operative
+
+Sono disponibili la distinzione fra parcheggio standard e Car valet, i filtri valet e lavaggio, i relativi riepiloghi e le esportazioni. Nel modulo pubblico il lavaggio può essere interno, esterno o completo. I supplementi riprendono quelli del progetto operativo: valet 10 euro, lavaggio interno o esterno 10 euro, completo 20 euro, una sola volta per prenotazione. Al momento sono definiti nel codice.
+
+Le correzioni manuali a nome, email, telefono, targa, volo, numero di persone e note prevalgono sulle sincronizzazioni successive. Le modifiche ai soli dati del cliente non richiedono una nuova disponibilità; modifiche all’occupazione e riattivazioni continuano a verificarla. Il riconoscimento valet comprende Parkos, ParkingMyCar e i servizi Roosh/Vologio esplicitamente associati al parcheggio.
+
+Da **Parcheggi > WhatsApp e recensioni** si configurano gli inviti a recensire su Google: consenso facoltativo, un tentativo per prenotazione e almeno 24 ore dall’uscita effettivamente registrata dopo l’attivazione. In modalità demo gli inviti vengono solo simulati; per gli invii reali servono credenziali e modello Twilio approvato. Il testo del modello va approvato nella lingua desiderata. Impostazioni, consenso, filtri e nuovi riepiloghi sono tradotti nelle tre lingue.
+
+Per aggiornare un’installazione esistente applicare le quattro nuove migrazioni con `php artisan migrate --force`, dopo il backup del database: `2026_10_26_000001_add_is_valet_to_reservations`, `2026_11_07_000001_add_manually_edited_fields_to_reservations`, `2026_11_17_000001_add_whatsapp_review_invitations`, `2026_11_25_000001_add_car_wash_to_reservations`. Non occorre rigenerare lo scenario demo. Lo scheduler include `whatsapp:send-review-invitations`; la riclassificazione facoltativa dello storico usa `reservations:backfill-valet ID_PARCHEGGIO --dry-run`, con `--with-catalog` per consultare anche Roosh.
+
 ## Gestione di più parcheggi
 
 Una **gestione** riunisce utenti, ruoli, anagrafiche clienti e canali commerciali. Può comprendere più parcheggi. Prenotazioni, disponibilità, calendario, garage, navette, documenti, analisi e registro attività seguono il **parcheggio selezionato**.

@@ -44,6 +44,14 @@
 
             <!-- Seconda riga: Date e bottoni -->
             <div class="pm-filters" style="align-items: center;">
+                <label class="pm-checkbox-group pm-checkbox-label pm-valet-filter" for="only-valet">
+                    <input id="only-valet" type="checkbox" name="only_valet" value="1" class="pm-checkbox" @checked(request()->boolean('only_valet')) onchange="this.form.submit()">
+                    {{ __('Solo valet') }}
+                </label>
+                <label class="pm-checkbox-group pm-checkbox-label pm-valet-filter" for="with-car-wash">
+                    <input id="with-car-wash" type="checkbox" name="with_car_wash" value="1" class="pm-checkbox" @checked(request()->boolean('with_car_wash')) onchange="this.form.submit()">
+                    {{ __('Con lavaggio') }}
+                </label>
                 <select name="date_filter_type" class="pm-select" aria-label="{{ __('Tipo di data') }}" onchange="this.form.submit()" style="max-width: 160px; flex: unset;">
                     <option value="starts_at" {{ request('date_filter_type', 'starts_at') === 'starts_at' ? 'selected' : '' }}>
                         {{ __('Filtra per: arrivo') }}
@@ -107,9 +115,13 @@
                 </thead>
                 <tbody>
                     @forelse ($reservations as $reservation)
-                        <tr>
+                        <tr @class(['pm-valet-row' => $reservation->is_valet])>
                             <td>
                                 <div class="pm-td-main">{{ $reservation->customer_name }}</div>
+                                    @if ($reservation->is_valet)
+                                        <strong class="pm-valet-label">{{ __('Car valet') }}</strong>
+                                    @endif
+                                    <x-car-wash-label :type="$reservation->car_wash" />
                             </td>
                             <td>
                                 @if ($reservation->flight_reference)

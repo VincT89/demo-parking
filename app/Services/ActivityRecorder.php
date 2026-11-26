@@ -23,7 +23,7 @@ class ActivityRecorder
             'subject_type' => class_basename($subject),
             'subject_id' => $subject->getKey(),
             'changes' => array_values(array_diff(array_keys($changes), [
-                'updated_at', 'created_at', 'raw_data', 'raw_payload', 'connection_settings', 'payment_settings',
+                'updated_at', 'created_at', 'raw_data', 'raw_payload', 'connection_settings', 'payment_settings', 'manually_edited_fields', 'exited_at',
             ])),
         ]);
     }

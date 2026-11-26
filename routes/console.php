@@ -16,6 +16,11 @@ Artisan::command('inspire', function () {
     ->everyMinute()
     ->withoutOverlapping();
 
+\Illuminate\Support\Facades\Schedule::command('whatsapp:send-review-invitations')
+    ->everyMinute()
+    ->withoutOverlapping(10)
+    ->runInBackground();
+
 \Illuminate\Support\Facades\Schedule::command(
     'queue:work database --queue=default --stop-when-empty --tries=3 --timeout=360'
 )

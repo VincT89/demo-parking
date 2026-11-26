@@ -97,8 +97,9 @@ class CalendarController extends Controller
 
         $reservations = $this->getDayReservationsQuery($type, $date, $parkingId)->get();
         $reservationsCount = $reservations->count();
+        $valetEntriesCount = $type === 'entries' ? $reservations->whereStrict('is_valet', true)->count() : null;
 
-        return view('calendar.day', compact('reservations', 'reservationsCount', 'type', 'date', 'parkingId'));
+        return view('calendar.day', compact('reservations', 'reservationsCount', 'valetEntriesCount', 'type', 'date', 'parkingId'));
     }
 
     public function exportDay(Request $request)

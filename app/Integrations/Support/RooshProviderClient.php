@@ -66,38 +66,39 @@ class RooshProviderClient
 
     public function findBookingsByServiceId(array $serviceIds): array
     {
-        if (empty($serviceIds)) {
-            return [];
-        }
-
+        $serviceIds = array_unique(array_filter(array_map('strval', $serviceIds), fn ($id) => $id !== ''));
         $allBookings = [];
-        $page = 1;
         $limit = 100;
         $maxPages = 50;
 
-        do {
-            $response = $this->request()->get("{$this->baseUrl}/bookings/findByServiceId", [
-                'service_id' => implode(',', $serviceIds),
-                'limit' => $limit,
-                'page' => $page,
-            ]);
+        /** The live API returned no bookings for comma-separated IDs; paginate each service independently. */
+        foreach ($serviceIds as $serviceId) {
+            $page = 1;
+            do {
+                $response = $this->request()->get("{$this->baseUrl}/bookings/findByServiceId", [
+                    'service_id' => $serviceId,
+                    'limit' => $limit,
+                    'page' => $page,
+                ]);
 
-            $response->throw();
-            $data = $response->json() ?? [];
-            
-            // Extract the actual array if it's wrapped in a key
-            $items = $data['bookingsByServiceId'] ?? (isset($data[0]) ? $data : []);
+                $response->throw();
+                $data = $response->json() ?? [];
+                $items = $data['bookingsByService'] ?? $data['bookingsByServiceId'] ?? (isset($data[0]) ? $data : []);
 
-            $allBookings = array_merge($allBookings, $items);
+                $allBookings = array_merge($allBookings, $items);
 
-            if (count($items) < $limit || $page >= $maxPages) {
-                break;
-            }
+                if (count($items) < $limit || $page >= $maxPages) {
+                    break;
+                }
 
-            $page++;
-        } while (true);
+                $page++;
+            } while (true);
+        }
 
-        return $allBookings;
+        return collect($allBookings)
+            ->unique(fn ($record) => (string) ($record['id'] ?? json_encode($record)))
+            ->values()
+            ->all();
     }
 
     public function findBookingsByModification(Carbon $start, Carbon $end): array
@@ -154,7 +155,7 @@ class RooshProviderClient
             $response->throw();
             $data = $response->json() ?? [];
             
-            $items = $data['bookingsByServiceLocationId'] ?? (isset($data[0]) ? $data : []);
+            $items = $data['bookingsByServiceLocation'] ?? $data['bookingsByServiceLocationId'] ?? (isset($data[0]) ? $data : []);
 
             $allBookings = array_merge($allBookings, $items);
 

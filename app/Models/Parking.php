@@ -29,11 +29,15 @@ class Parking extends Model
     'is_active',
   ];
 
+  protected $hidden = ['whatsapp_review_settings'];
+
   protected function casts(): array
   {
     return [
       'is_active' => 'boolean',
       'total_spots' => 'integer',
+      'whatsapp_reviews_enabled_at' => 'integer',
+      'whatsapp_review_settings' => 'encrypted:array',
     ];
   }
 
@@ -55,6 +59,11 @@ class Parking extends Model
   public function allocations()
   {
       return $this->hasMany(ParkingCapacityAllocation::class);
+  }
+
+  public function whatsappReviewsEnabled(): bool
+  {
+      return $this->is_active && $this->whatsapp_reviews_enabled_at !== null;
   }
 
   public function settings(): HasOne

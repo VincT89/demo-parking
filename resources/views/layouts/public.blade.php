@@ -31,7 +31,7 @@
     <div style="background: #1C1F2E; padding: 28px 24px 26px; position: relative; overflow: hidden;">
         <div style="max-width: 800px; margin: 0 auto; position: relative; z-index: 1;">
             <div style="font-size: 10px; font-weight: 500; letter-spacing: 1.8px; text-transform: uppercase; color: var(--pm-public-accent); margin-bottom: 7px;">
-                @yield('hero_kicker', __('Parcheggio aeroportuale dimostrativo'))
+                @yield('hero_kicker', config('demo.enabled') ? __('Parcheggio aeroportuale dimostrativo') : __('Prenotazione parcheggio'))
             </div>
             <div style="font-size: 22px; font-weight: 600; color: #fff; margin-bottom: 8px; line-height: 1.25;">
                 @yield('hero_title', __('Prenota il tuo parcheggio'))
@@ -39,8 +39,9 @@
             <div style="font-size: 12px; color: rgba(255,255,255,0.45); display: flex; gap: 18px; flex-wrap: wrap;">
                 <span style="display:flex; align-items:center; gap:5px;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    {{ __('Dati interamente dimostrativi') }}
+                    {{ config('demo.enabled') ? __('Dati interamente dimostrativi') : $bookingParking?->name }}
                 </span>
+                @if(config('demo.enabled'))
                 <span style="display:flex; align-items:center; gap:5px;">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                     {{ __('Sincronizzazioni API simulate') }}
@@ -49,6 +50,7 @@
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     {{ __('Nessun pagamento reale') }}
                 </span>
+                @endif
             </div>
         </div>
     </div>

@@ -33,6 +33,7 @@ class ReservationImportPayloadFactory
             'status'             => $dto->status ?? 'confirmed',
             'flight_reference'   => $dto->flight_reference,
             'raw_data'           => $dto->raw_data,
+            'is_valet'           => $dto->is_valet,
         ];
     }
 
@@ -50,6 +51,7 @@ class ReservationImportPayloadFactory
             'platform_updated_at' => $dto->platform_updated_at?->format('Y-m-d H:i:s'),
             'platform_cancelled_at' => $dto->platform_cancelled_at?->format('Y-m-d H:i:s'),
             'raw_data'    => $dto->raw_data,
+            'is_valet'    => $dto->is_valet,
         ];
     }
 }

@@ -13,6 +13,11 @@ abstract class AbstractPlatformAdapter implements PlatformAdapterInterface
 {
     protected ?array $configuration = null;
 
+    public function classifyValet(array $payload): ?bool
+    {
+        return \App\Integrations\Support\ValetDetector::fromPayload($this->getPlatformSlug(), $payload);
+    }
+
     public function configure(array $configuration): static
     {
         $this->configuration = $configuration;

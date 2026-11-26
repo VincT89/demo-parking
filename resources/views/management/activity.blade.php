@@ -10,6 +10,7 @@
             'name' => __('Nome'), 'email' => __('Email'), 'role' => __('Ruolo'), 'is_active' => __('Stato di attivazione'),
             'status' => __('Stato'), 'capacity' => __('Numero di posti'), 'capacity_mode' => __('Organizzazione dei posti'), 'total_spots' => __('Posti totali'),
             'price' => __('Tariffa'), 'amount' => __('Importo'), 'currency' => __('Valuta'), 'spots' => __('Posti prenotati'), 'notes' => __('Note'),
+            'is_valet' => __('Tipo di servizio'), 'car_wash' => __('Lavaggio'), 'car_wash_surcharge' => __('Supplemento lavaggio'), 'whatsapp_review_consent' => __('Consenso WhatsApp'),
             'customer_name' => __('Nome cliente'), 'customer_email' => __('Email cliente'), 'customer_phone' => __('Telefono cliente'),
             'starts_at' => __('Data di inizio'), 'ends_at' => __('Data di fine'), 'expires_at' => __('Scadenza'), 'paid_at' => __('Data del pagamento'),
             'entered_at' => __('Ingresso'), 'exited_at' => __('Uscita'), 'has_entered' => __('Ingresso'), 'has_exited' => __('Uscita'),

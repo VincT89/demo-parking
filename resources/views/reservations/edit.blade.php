@@ -30,6 +30,25 @@
                 </select>
             </div>
 
+            <div class="pm-form-group">
+                <label class="pm-label" for="reservation-is_valet">{{ __('Tipo di servizio') }}</label>
+                @php($selectedValet = old('is_valet', $reservation->is_valet === null ? '' : (int) $reservation->is_valet))
+                <select id="reservation-is_valet" name="is_valet" class="pm-select">
+                    <option value="" @selected($selectedValet === null || $selectedValet === '')>{{ __('Non specificato') }}</option>
+                    <option value="0" @selected(in_array($selectedValet, [0, '0', false], true))>{{ __('Parcheggio standard') }}</option>
+                    <option value="1" @selected(in_array($selectedValet, [1, '1', true], true))>{{ __('Car valet') }}</option>
+                </select>
+                @error('is_valet') <span class="pm-form-error" role="alert">{{ $message }}</span> @enderror
+            </div>
+
+            @if ($reservation->car_wash)
+                <div class="pm-form-group">
+                    <div class="pm-label">{{ __('Lavaggio prenotato') }}</div>
+                    <x-car-wash-label :type="$reservation->car_wash" />
+                    <p class="pm-form-note">{{ __('Supplemento di :amount € incluso nel prezzo.', ['amount' => \App\Support\PriceFormatter::decimal((float) $reservation->car_wash_surcharge)]) }}</p>
+                </div>
+            @endif
+
             <div class="pm-form-grid-3">
                 <div class="pm-form-group">
                     <label class="pm-label pm-label-required">{{ __('Nome cliente') }}</label>

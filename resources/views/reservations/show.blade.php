@@ -25,6 +25,11 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--pm-border-color);">
             <div>
                 <h2 style="font-size: 20px; font-weight: 600; color: var(--pm-text); margin-bottom: 8px;">{{ $reservation->customer_name }}</h2>
+                <div class="pm-form-note">{{ __('Tipo di servizio') }}: {{ $reservation->is_valet === null ? __('Non specificato') : ($reservation->is_valet ? __('Car valet') : __('Parcheggio standard')) }}</div>
+                @if ($reservation->car_wash)
+                    <x-car-wash-label :type="$reservation->car_wash" />
+                    <p class="pm-form-note">{{ __('Supplemento di :amount € incluso nel totale.', ['amount' => \App\Support\PriceFormatter::decimal((float) $reservation->car_wash_surcharge)]) }}</p>
+                @endif
                 @if ($reservation->customer_email)
                     <div style="color: var(--pm-text-muted); font-size: 14px;">{{ $reservation->customer_email }}</div>
                 @endif
@@ -174,5 +179,34 @@
 
     @if($reservation->customer_id)
         <div class="pm-mt-20"><a class="pm-btn pm-btn-secondary" href="{{ route('customers.show', $reservation->customer_id) }}">{{ __('Scheda cliente') }}</a></div>
+    @endif
+
+    @if ($activeParking?->whatsappReviewsEnabled() || $reservation->whatsapp_review_consent || $reservation->whatsapp_review_status)
+        <section class="pm-card pm-form" style="margin-top: 24px; padding: 24px;">
+            <h2 class="pm-card-title">{{ __('Invito a recensire su Google') }}</h2>
+            <p class="pm-form-note">{{ $reviewConsent ? __('Consenso WhatsApp registrato per il numero attuale.') : __('Consenso WhatsApp assente per il numero attuale.') }}</p>
+            @if ($reservation->whatsapp_review_status)
+                <p class="pm-form-note">{{ match ($reservation->whatsapp_review_status) {
+                    'accepted' => __('Invito affidato a Twilio.'),
+                    'simulated' => __('Invito simulato: nessun messaggio WhatsApp inviato.'),
+                    'failed' => __('Invio fallito. Verifica il registro messaggi di Twilio.'),
+                    default => __('Invio da verificare nel registro messaggi di Twilio.'),
+                } }}</p>
+            @endif
+            @if ($reservation->whatsapp_review_consent || ($activeParking?->whatsappReviewsEnabled() && $reviewPhone))
+                <form method="POST" action="{{ route('reservations.whatsapp-review-consent', $reservation) }}" class="pm-form">
+                    @csrf @parkingContext @method('PUT')
+                    @if (! $reviewConsent && $activeParking?->whatsappReviewsEnabled() && $reviewPhone)
+                        <p class="pm-form-note">{{ __('Registra il consenso solo dopo che il cliente ha accettato l’invito per il numero :number.', ['number' => $reviewPhone]) }}</p>
+                        <button type="submit" name="consent" value="1" class="pm-btn pm-btn-primary">{{ __('Registra consenso WhatsApp') }}</button>
+                    @endif
+                    @if ($reservation->whatsapp_review_consent)
+                        <button type="submit" name="consent" value="0" class="pm-btn pm-btn-secondary">{{ __('Revoca consenso WhatsApp') }}</button>
+                    @endif
+                </form>
+            @elseif (! $reviewPhone)
+                <p class="pm-form-note">{{ __('Per registrare il consenso, inserisci un numero con prefisso internazionale.') }}</p>
+            @endif
+        </section>
     @endif
 </x-app-layout>

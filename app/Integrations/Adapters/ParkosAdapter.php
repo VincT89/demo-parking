@@ -197,7 +197,8 @@ class ParkosAdapter extends AbstractPlatformAdapter
             passengers_count: $this->passengersCount($record),
             platform_created_at: $this->parsePlatformDateTime($record, 'created_at'),
             platform_updated_at: $this->parsePlatformDateTime($record, 'updated_at'),
-            platform_cancelled_at: $this->parsePlatformDateTime($record, 'cancelled_at')
+            platform_cancelled_at: $this->parsePlatformDateTime($record, 'cancelled_at'),
+            is_valet: $this->classifyValet($record)
         );
     }
 }

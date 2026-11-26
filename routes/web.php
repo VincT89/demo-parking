@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ReservationController;
+use App\Http\Controllers\WhatsAppReviewController;
 use App\Http\Controllers\PlatformController;
 use App\Http\Controllers\AvailabilityBlockController;
 use App\Http\Controllers\AnalyticsController;
@@ -91,6 +92,7 @@ Route::middleware(['auth', 'verified', 'parking.context'])->group(function () {
 
     // Prenotazioni
     Route::post('/reservations/{reservation}/toggle-movement', [ReservationController::class, 'toggleMovement'])->name('reservations.toggle-movement');
+    Route::put('/reservations/{reservation}/whatsapp-review-consent', [WhatsAppReviewController::class, 'updateConsent'])->name('reservations.whatsapp-review-consent');
     Route::post('/reservations/{reservation}/mark-paid', [ReservationController::class, 'markPaid'])->name('reservations.mark-paid');
     Route::get('/reservations/{reservation}/ticket', [ParkingTicketController::class, 'show'])->name('reservations.ticket');
     Route::get('/reservations/{reservation}/invoice/create', [ElectronicInvoiceController::class, 'create'])->name('invoices.create');
@@ -175,6 +177,9 @@ Route::middleware(['auth', 'verified', 'parking.context'])->group(function () {
             ->name('operational-settings.edit');
         Route::put('admin/operational-settings/{parking}', [OperationalSettingsController::class, 'update'])
             ->name('operational-settings.update');
+
+        Route::get('/admin/parkings/{parking}/whatsapp-reviews', [WhatsAppReviewController::class, 'edit'])->name('parkings.whatsapp-reviews.edit');
+        Route::put('/admin/parkings/{parking}/whatsapp-reviews', [WhatsAppReviewController::class, 'update'])->name('parkings.whatsapp-reviews.update');
 
         Route::resource('admin/parkings', \App\Http\Controllers\ParkingController::class)
             ->except(['show'])

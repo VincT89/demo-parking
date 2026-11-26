@@ -44,6 +44,7 @@
                                         {{ __('Modifica e configura') }}
                                     </a>
                                     
+                                    <a href="{{ route('parkings.whatsapp-reviews.edit', $parking) }}" class="pm-btn pm-btn-secondary pm-btn-sm">{{ __('WhatsApp e recensioni') }}</a>
                                     @if ($parking->is_active)
                                         <form method="POST" action="{{ route('parkings.destroy', $parking) }}" onsubmit="return confirm('{{ __('Disattivare questo parcheggio?') }}');">
                                             @csrf @parkingContext

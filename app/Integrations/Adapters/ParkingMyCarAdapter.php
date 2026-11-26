@@ -282,7 +282,8 @@ class ParkingMyCarAdapter extends AbstractPlatformAdapter
                 'updated_dttm',
                 'updated_at',
             ]),
-            platform_cancelled_at: $platformCancelledAt
+            platform_cancelled_at: $platformCancelledAt,
+            is_valet: $this->classifyValet($record)
         );
     }
 
